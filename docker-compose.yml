@@ -1,0 +1,37 @@
+version: "2"
+services:
+  app:
+    environment:
+      - PYTHONUNBUFFERED=0
+      - DB_USER=${DB_USER}
+      - DB_USER_PASSWORD=${DB_USER_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - EXCHANGE_KEY=${EXCHANGE_KEY}
+      - EXCHANGE_SECRET=${EXCHANGE_SECRET}
+    build: .
+    links:
+      - db
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.app.schedule: "@every 15s"
+      ofelia.job-exec.app.command: "task"
+    ports:
+      - "5000:5000"
+  ofelia:
+    image: mcuadros/ofelia:latest
+    restart: always
+    depends_on:
+      - app
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  db:
+    image: mysql:5.7
+    ports:
+      - "32000:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/:ro

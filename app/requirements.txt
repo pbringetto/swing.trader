@@ -1,0 +1,6 @@
+Flask
+mysql-connector
+pyyaml
+requests
+python-dotenv
+ciso8601
