@@ -28,6 +28,7 @@ class Status:
          }
 
      def process_data(self, symbol, time_frames):
+         print('run process_data')
          exchange = x.Exchange()
          rsi = r.Rsi()
          trade = t.Trade()

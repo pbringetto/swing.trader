@@ -18,7 +18,7 @@ services:
       ofelia.job-exec.app.schedule: "@every 15s"
       ofelia.job-exec.app.command: "task"
     ports:
-      - "5000:5000"
+      - "8888:8888"
   ofelia:
     image: mcuadros/ofelia:latest
     restart: always
@@ -28,7 +28,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
   db:
-    image: mysql:5.7
+    image: mariadb:latest
     ports:
       - "32000:3306"
     environment:
