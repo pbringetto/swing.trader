@@ -23,17 +23,37 @@ def trades() -> List[Dict]:
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor()
     cursor.execute('SELECT * FROM trade')
-
-    results = cursor.fetchall()
-
+    columns = cursor.description
+    results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
     cursor.close()
     connection.close()
+    return results
 
+def get_trade_signals(trade_id) -> List[Dict]:
+    config = {
+        'user': os.getenv('DB_USER'),
+        'password': os.getenv('DB_USER_PASSWORD'),
+        'host': os.getenv('DB_HOST'),
+        'port': os.getenv('DB_PORT'),
+        'database': os.getenv('DB_DATABASE'),
+    }
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor()
+    sql = 'SELECT * FROM signal_data sd INNER JOIN trade_signal_data tsd ON sd.id = tsd.signal_data_id WHERE tsd.trade_id = %s'
+    cursor.execute(sql, (trade_id,))
+    columns = cursor.description
+    results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
+    cursor.close()
+    connection.close()
     return results
 
 @app.route('/trades')
 def index() -> str:
     return json.dumps({'trades': trades()}, default = defaultconverter)
+
+@app.route('/trade/<int:trade_id>')
+def trade_data(trade_id):
+    return json.dumps({'trade_signals': get_trade_signals(trade_id)}, default = defaultconverter)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8888, debug=True)
