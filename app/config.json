@@ -4,6 +4,55 @@
     "ETH/USD"
   ],
   "time_frames": [
-    15, 60, 300, 900, 3600, 14400, 86400, 604800, 1209600, 2592000
+    {
+      "tf": 15,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 60,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 300,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 900,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 3600,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 14400,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 86400,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 604800,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 1209600,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    },
+    {
+      "tf": 2592000,
+      "tf-rsi-low": 30,
+      "tf-rsi-high": 70
+    }
   ]
 }

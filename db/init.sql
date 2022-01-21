@@ -21,6 +21,7 @@ CREATE TABLE signal_data (
   time_frame VARCHAR(8),
   price FLOAT(7),
   rsi FLOAT(7),
+  macd INT(7),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   primary key (id)
 );

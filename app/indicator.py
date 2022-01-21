@@ -1,6 +1,17 @@
 import typing
+import pandas as pd
 
-class Rsi:
+class Indicator:
+
+    def get_macd(self, price, slow, fast, smooth):
+        price = pd.DataFrame({'close': price})
+        fastEma = price.ewm(span = fast, adjust = False).mean()
+        slowEma = price.ewm(span = slow, adjust = False).mean()
+        macd = pd.DataFrame(fastEma - slowEma).rename(columns = {'close':'macd'})
+        signal = pd.DataFrame(macd.ewm(span = smooth, adjust = False).mean()).rename(columns = {'macd':'signal'})
+        hist = pd.DataFrame(macd['macd'] - signal['signal']).rename(columns = {0:'hist'})
+        return [macd['macd'].iloc[-1], signal['signal'].iloc[-1], hist['hist'].iloc[-1]]
+
     def get_rsi(self, data: typing.List[float or int], window_length: int,
                     use_rounding: bool = True) -> typing.List[typing.Any]:
         do_round = lambda x: round(x, 2) if use_rounding else x  # noqa: E731
