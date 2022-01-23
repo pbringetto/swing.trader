@@ -36,12 +36,12 @@
     },
     {
       "tf": 86400,
-      "tf-rsi-low": 30,
+      "tf-rsi-low": 23,
       "tf-rsi-high": 70
     },
     {
       "tf": 604800,
-      "tf-rsi-low": 30,
+      "tf-rsi-low": 32,
       "tf-rsi-high": 70
     },
     {

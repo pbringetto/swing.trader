@@ -12,6 +12,7 @@ CREATE TABLE trade (
   close_price FLOAT(7),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   amount FLOAT(7),
+  position VARCHAR(4),
   primary key (id)
 );
 
@@ -21,12 +22,21 @@ CREATE TABLE signal_data (
   time_frame VARCHAR(8),
   price FLOAT(7),
   rsi FLOAT(7),
-  macd INT(7),
+  macd FLOAT(7),
+  macd_signal FLOAT(7),
+  macd_hist FLOAT(7),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   primary key (id)
 );
 
 CREATE TABLE trade_signal_data (
+  trade_id BIGINT(8),
+  signal_data_id BIGINT(8),
+  date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  primary key (trade_id, signal_data_id)
+);
+
+CREATE TABLE trade_signal_settings (
   trade_id BIGINT(8),
   signal_data_id BIGINT(8),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
