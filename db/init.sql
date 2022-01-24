@@ -20,11 +20,15 @@ CREATE TABLE signal_data (
   id BIGINT(8) AUTO_INCREMENT NOT NULL,
   symbol VARCHAR(32),
   time_frame VARCHAR(8),
-  price FLOAT(7),
   rsi FLOAT(7),
+  sma200 FLOAT(7),
   macd FLOAT(7),
   macd_signal FLOAT(7),
   macd_hist FLOAT(7),
+  bid_volume FLOAT(7),
+  ask_volume FLOAT(7),
+  bid_price FLOAT(7),
+  ask_price FLOAT(7),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   primary key (id)
 );

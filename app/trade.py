@@ -27,7 +27,6 @@ class Trade:
             self.close_trade(signal_data, latest_orderbook, trade_data)
 
     def update_trade(self, signal_data, latest_orderbook, trade_data):
-        print(trade_data)
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "UPDATE trade SET last_price = %s, pnl = %s WHERE id = %s"

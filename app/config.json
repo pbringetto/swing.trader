@@ -1,56 +1,69 @@
 {
   "symbols" : [
     "BTC/USD",
-    "ETH/USD"
+    "ETH/USD",
+    "SOL/USD",
+    "LINK/USD",
+    "FTM/USD"
   ],
   "time_frames": [
     {
       "tf": 15,
-      "tf-rsi-low": 30,
-      "tf-rsi-high": 70
+      "text": "15s",
+      "tf-rsi-low": 45,
+      "tf-rsi-high": 55
     },
     {
       "tf": 60,
-      "tf-rsi-low": 30,
-      "tf-rsi-high": 70
+      "text": "1m",
+      "tf-rsi-low": 45,
+      "tf-rsi-high": 55
     },
     {
       "tf": 300,
-      "tf-rsi-low": 30,
-      "tf-rsi-high": 70
+      "text": "5m",
+      "tf-rsi-low": 45,
+      "tf-rsi-high": 55
     },
     {
       "tf": 900,
-      "tf-rsi-low": 30,
-      "tf-rsi-high": 70
+      "text": "15m",
+      "tf-rsi-low": 45,
+      "tf-rsi-high": 55
     },
     {
       "tf": 3600,
+      "text": "1h",
       "tf-rsi-low": 30,
       "tf-rsi-high": 70
     },
     {
       "tf": 14400,
+      "text": "4h",
       "tf-rsi-low": 30,
       "tf-rsi-high": 70
     },
     {
       "tf": 86400,
+      "text": "1d",
       "tf-rsi-low": 23,
       "tf-rsi-high": 70
     },
     {
       "tf": 604800,
+      "text": "1w",
       "tf-rsi-low": 32,
       "tf-rsi-high": 70
     },
     {
       "tf": 1209600,
+      "text": "2w",
       "tf-rsi-low": 30,
       "tf-rsi-high": 70
     },
     {
       "tf": 2592000,
+      "text": "1m",
       "tf-rsi-low": 30,
       "tf-rsi-high": 70
     }
