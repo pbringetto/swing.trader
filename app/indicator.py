@@ -51,16 +51,9 @@ class Indicator:
                 avg_loss = (prev_avg_loss * (window_length - 1) + loss) / window_length
             avg_gain = do_round(avg_gain)
             avg_loss = do_round(avg_loss)
-            print(avg_gain)
-            print(avg_loss)
-            if avg_gain == 0 or avg_loss == 0:
-                print(0)
-                rs = do_round(prev_avg_gain / prev_avg_loss)
-            else:
-                print('not 0')
-                rs = do_round(avg_gain / avg_loss)
-                prev_avg_gain = avg_gain
-                prev_avg_loss = avg_loss
+            prev_avg_gain = avg_gain
+            prev_avg_loss = avg_loss
+            rs = do_round(avg_gain / avg_loss)
             rsi = do_round(100 - (100 / (1 + rs)))
             gains.pop(0)
             losses.pop(0)

@@ -8,7 +8,6 @@ now = datetime.now()
 
 class Trade:
     def __init__(self):
-        self.amount = 0.25
         load_dotenv()
         self.db_config = {
             'user': os.getenv('DB_USER'),
@@ -18,43 +17,35 @@ class Trade:
             'database': os.getenv('DB_DATABASE'),
         }
 
-    def long(self, signal_data, latest_orderbook, trade_data):
-        if len(trade_data) == 0:
-            return self.open_trade(signal_data, latest_orderbook, 'long')
-
-    def short(self, signal_data, latest_orderbook, trade_data):
-        if len(trade_data) != 0:
-            self.close_trade(signal_data, latest_orderbook, trade_data)
-
-    def update_trade(self, signal_data, latest_orderbook, trade_data):
+    def update_trade(self, trade_id, pnl, last_price):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "UPDATE trade SET last_price = %s, pnl = %s WHERE id = %s"
-        cursor.execute(sql, (latest_orderbook['asks'][0][0], round(   (float(latest_orderbook['asks'][0][0]) * float(trade_data['amount'])) - (float(trade_data['open_price'] * float(trade_data['amount'])))    , 2), trade_data['id'],))
+        cursor.execute(sql, (last_price, pnl, trade_id,))
         self.connection.commit()
         cursor.close()
         self.connection.close()
 
-    def close_trade(self, signal_data, latest_orderbook, trade_data):
+    def close_trade(self, trade_id, signal_id, close_price):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "UPDATE trade SET close = %s, close_price = %s WHERE id = %s"
-        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), latest_orderbook['asks'][0][0], trade_data[0]['id'], ))
+        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), close_price, trade_id ))
         self.connection.commit()
         cursor.close()
         self.connection.close()
-        self.save_trade_signal_data(trade_data[0]['id'], signal_data['id'])
+        self.save_trade_signal_data(trade_id, signal_id)
 
-    def open_trade(self, signal_data, latest_orderbook, position):
+    def open_trade(self, symbol, last_price, time_frame, amount, position, signal_id):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "INSERT INTO trade (symbol, last_price, open_price, time_frame, amount, pnl, position) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (signal_data['symbol'], latest_orderbook['asks'][0][0], latest_orderbook['asks'][0][0], signal_data['time_frame']['tf'], self.amount, 0, position, ))
+        cursor.execute(sql, (symbol, last_price, last_price, time_frame, amount, 0, position, ))
         self.connection.commit()
         id = cursor.lastrowid
         cursor.close()
         self.connection.close()
-        self.save_trade_signal_data(id, signal_data['id'])
+        self.save_trade_signal_data(id, signal_id)
         return id
 
     def save_trade_signal_data(self, trade_id, signal_data_id):
@@ -66,17 +57,13 @@ class Trade:
         cursor.close()
         self.connection.close()
 
-    def get_trade(self, signal_data, position = 0):
+    def get_trade(self, symbol, timeframe):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        if position == 0:
-            sql = 'SELECT * FROM trade WHERE symbol = %s AND time_frame = %s AND close IS NULL'
-            cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], ))
-        else:
-            sql = 'SELECT * FROM trade WHERE symbol = %s AND time_frame = %s AND position = %s AND close IS NULL'
-            cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], position, ))
+        sql = 'SELECT * FROM trade WHERE symbol = %s AND time_frame = %s AND close IS NULL'
+        cursor.execute(sql, (symbol, timeframe, ))
         columns = cursor.description
         results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
         cursor.close()
         self.connection.close()
-        return results
+        return results[0]

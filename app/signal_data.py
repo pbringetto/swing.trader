@@ -8,6 +8,7 @@ import mysql.connector
 
 class SignalData:
      def __init__(self):
+         self.amount = 0.25
          load_dotenv()
          self.data = json.load(open('/home/user/app/app/config.json', 'r'))
          self.db_config = {
@@ -33,8 +34,6 @@ class SignalData:
          time_frame_data = []
          latest_orderbook = exchange.get_orderbook(symbol, 1)
          for time_frame in time_frames:
-             print(time_frame)
-             print(symbol)
              close_prices = exchange.get_close_prices(symbol, time_frame['tf'])
              macd = self.get_macd_signal(close_prices)
              rsi = self.get_rsi_signal(close_prices)
@@ -59,21 +58,42 @@ class SignalData:
      def analyze_signals(self, time_frame_data, latest_orderbook):
          trade = t.Trade()
          for i, signal_data in enumerate(time_frame_data):
+             time_frame = signal_data['time_frame']['tf']
+             last_price = latest_orderbook['asks'][0][0]
              signal_data_id = self.save_signal_data(signal_data)
-             signal_data['id'] = signal_data_id
+             symbol = signal_data['symbol']
              #and (signal_data['macd_hist'] > 0
              #if (signal_data["rsi"] < signal_data['time_frame']['tf-rsi-low']) and (macd_trade_signal == 1):
+             #elif (signal_data["rsi"] > signal_data['time_frame']['tf-rsi-high']) or (macd_trade_signal == 0):
              macd_trade_signal = 1 if (signal_data['macd'] > signal_data['macd_signal'])  else 0
+             trade_data = trade.get_trade(symbol, time_frame)
+             pnl = self.get_pnl(trade_data, last_price)
+
              if (macd_trade_signal == 1):
-                 trade_data = trade.get_trade(signal_data, 'long')
-                 trade.long(signal_data, latest_orderbook, trade_data)
-             elif (signal_data["rsi"] > signal_data['time_frame']['tf-rsi-high']) or (macd_trade_signal == 0):
-                 trade_data = trade.get_trade(signal_data, 'short')
-                 trade.short(signal_data, latest_orderbook, trade_data)
-             trade_data = trade.get_trade(signal_data)
+                 if len(trade_data) == 0:
+                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id)
+                 else:
+                     if trade_data['position'] == 'short':
+                         trade.close_trade(trade_data['id'], signal_data_id ,last_price)
+                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id)
+             elif (macd_trade_signal == 0):
+                 if len(trade_data) == 0:
+                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id)
+                 else:
+                     if trade_data['position'] == 'long':
+                         trade.close_trade(trade_data['id'], signal_data_id, last_price)
+                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id)
              if len(trade_data) > 0:
-                 for td in trade_data:
-                     trade.update_trade(signal_data, latest_orderbook, td)
+                 trade.update_trade(trade_data['id'], pnl, last_price)
+
+     def get_pnl(self, trade_data, last_price):
+          pnl = 0
+          if len(trade_data) > 0:
+              if(trade_data['position'] == 'long'):
+                  pnl = round((float(last_price) * float(trade_data['amount'])) - (float(trade_data['open_price'] * float(trade_data['amount']))), 2)
+              else:
+                  pnl = round((float(trade_data['open_price'] * float(trade_data['amount'])) - (float(last_price) * float(trade_data['amount']))), 2)
+          return pnl
 
      def get_sma(self, close_prices, intervals):
           indicator = i.Indicator()

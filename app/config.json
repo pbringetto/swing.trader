@@ -1,10 +1,7 @@
 {
   "symbols" : [
     "BTC/USD",
-    "ETH/USD",
-    "SOL/USD",
-    "LINK/USD",
-    "FTM/USD"
+    "ETH/USD"
   ],
   "time_frames": [
     {

@@ -12,7 +12,7 @@ CREATE TABLE trade (
   close_price FLOAT(7),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   amount FLOAT(7),
-  position VARCHAR(4),
+  position VARCHAR(8),
   primary key (id)
 );
 
