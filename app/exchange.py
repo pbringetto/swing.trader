@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import app.ftx as f
 import time
 
-
 class Exchange:
     def __init__(self):
         load_dotenv()

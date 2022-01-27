@@ -1,7 +1,13 @@
 {
-  "symbols" : [
-    "BTC/USD",
-    "ETH/USD"
+  "markets" : [
+    {
+      "symbol": "BTC/USD",
+      "amount": 1
+    },
+    {
+      "symbol": "ETH/USD",
+      "amount": 10
+    }
   ],
   "time_frames": [
     {

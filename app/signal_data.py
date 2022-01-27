@@ -1,6 +1,7 @@
 import app.exchange as x
 import app.indicator as i
 import app.trade as t
+import app.strategy as s
 import os
 import json
 from dotenv import load_dotenv
@@ -21,24 +22,29 @@ class SignalData:
 
      def signal_data(self):
          signal_data = []
-         for symbol in self.data["symbols"]:
-             result = self.process_data(symbol, self.data["time_frames"])
+         for symbol in self.data["markets"]:
+             result = self.process_data(symbol['symbol'], symbol['amount'], self.data["time_frames"])
              signal_data.append(result)
          return {
              "signal_data": signal_data,
          }
 
-     def process_data(self, symbol, time_frames):
+     def process_data(self, symbol, amount, time_frames):
+         print(symbol)
+         self.amount = amount
          exchange = x.Exchange()
          trade = t.Trade()
          time_frame_data = []
          latest_orderbook = exchange.get_orderbook(symbol, 1)
          for time_frame in time_frames:
+
+             print(time_frame['tf'])
              close_prices = exchange.get_close_prices(symbol, time_frame['tf'])
              macd = self.get_macd_signal(close_prices)
              rsi = self.get_rsi_signal(close_prices)
              sma200 = self.get_sma(close_prices, 200)
              sma14 = self.get_sma(close_prices, 14)
+             bb = self.get_bollinger_bands(close_prices, 14)
              time_frame_data.append({
                  "last_price": close_prices[-1],
                  "symbol": symbol,
@@ -59,26 +65,18 @@ class SignalData:
 
      def analyze_signals(self, time_frame_data, latest_orderbook):
          trade = t.Trade()
+         strategy = s.Strategy()
+
          for i, signal_data in enumerate(time_frame_data):
+
              time_frame = signal_data['time_frame']['tf']
              last_price = latest_orderbook['asks'][0][0]
              signal_data_id = self.save_signal_data(signal_data)
              symbol = signal_data['symbol']
 
-
-             macd_signal = 1 if (signal_data['macd'] > signal_data['macd_signal']) and (-25 <= signal_data['macd_hist'] <= 20)  else 0
-             rsi_signal = 1 if signal_data['rsi'] > 50 else 0
-             sma_signal = 1 if signal_data['sma14'] > last_price else 0
-             trade_signal_buy = macd_signal and rsi_signal and sma_signal
-
-             macd_signal = 1 if (signal_data['macd'] < signal_data['macd_signal']) and (-25 <= signal_data['macd_hist'] <= 20)  else 0
-             rsi_signal = 1 if signal_data['rsi'] < 50 else 0
-             sma_signal = 1 if signal_data['sma14'] < last_price else 0
-             trade_signal_sell = macd_signal and rsi_signal and sma_signal
-
              trade_data = trade.get_trade(symbol, time_frame)
              pnl = self.get_pnl(trade_data, last_price)
-             gain_perc = pnl / (last_price * self.amount)
+             trade_signal_buy, trade_signal_sell = strategy.setup(last_price, signal_data['macd'], signal_data['macd_signal'], signal_data['macd_hist'], signal_data['rsi'], signal_data['sma14'])
 
              if trade_signal_buy:
                  if len(trade_data) == 0:
@@ -106,8 +104,13 @@ class SignalData:
                   pnl = round((float(trade_data['open_price'] * float(trade_data['amount'])) - (float(last_price) * float(trade_data['amount']))), 2)
           return pnl
 
+     def get_bollinger_bands(self, close_prices, intervals):
+          indicator = i.Indicator()
+          indicator.get_bollinger_bands(close_prices, intervals)
+
      def get_sma(self, close_prices, intervals):
           indicator = i.Indicator()
+          indicator.get_bollinger_bands(close_prices, intervals)
           return indicator.get_sma(close_prices, intervals)
 
      def get_macd_signal(self, close_prices):

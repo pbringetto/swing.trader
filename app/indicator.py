@@ -3,6 +3,20 @@ import pandas as pd
 
 class Indicator:
 
+    def get_sma2(self, prices, intervals):
+        return prices.rolling(intervals).mean()
+
+    def get_bollinger_bands(self, prices, intervals):
+        prices = pd.Series(prices)
+        sma = self.get_sma2(prices, intervals) # <-- Get SMA for 20 days
+        std = prices.rolling(intervals).std() # <-- Get rolling standard deviation for 20 days
+        bollinger_up = sma + std * 2 # Calculate top band
+        bollinger_down = sma - std * 2 # Calculate bottom band
+        print(sma)
+        print(std)
+        print(bollinger_up)
+        print(bollinger_down)
+
     def get_sma(self, prices, intervals, window_size = 3):
         numbers_series = pd.Series(prices)
         windows = numbers_series.rolling(window_size)
