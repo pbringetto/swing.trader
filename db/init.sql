@@ -22,6 +22,7 @@ CREATE TABLE signal_data (
   time_frame VARCHAR(8),
   rsi FLOAT(7),
   sma200 FLOAT(7),
+  sma14 FLOAT(7),
   macd FLOAT(7),
   macd_signal FLOAT(7),
   macd_hist FLOAT(7),

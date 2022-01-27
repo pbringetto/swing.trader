@@ -66,4 +66,4 @@ class Trade:
         results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
         cursor.close()
         self.connection.close()
-        return results[0]
+        return [] if len(results) == 0 else results[0]

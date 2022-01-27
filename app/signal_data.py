@@ -38,11 +38,13 @@ class SignalData:
              macd = self.get_macd_signal(close_prices)
              rsi = self.get_rsi_signal(close_prices)
              sma200 = self.get_sma(close_prices, 200)
+             sma14 = self.get_sma(close_prices, 14)
              time_frame_data.append({
                  "last_price": close_prices[-1],
                  "symbol": symbol,
                  "time_frame": time_frame,
                  "sma200": sma200,
+                 "sma14": sma14,
                  "rsi": rsi[0],
                  "macd": macd[0],
                  "macd_signal": macd[1],
@@ -62,21 +64,30 @@ class SignalData:
              last_price = latest_orderbook['asks'][0][0]
              signal_data_id = self.save_signal_data(signal_data)
              symbol = signal_data['symbol']
-             #and (signal_data['macd_hist'] > 0
-             #if (signal_data["rsi"] < signal_data['time_frame']['tf-rsi-low']) and (macd_trade_signal == 1):
-             #elif (signal_data["rsi"] > signal_data['time_frame']['tf-rsi-high']) or (macd_trade_signal == 0):
-             macd_trade_signal = 1 if (signal_data['macd'] > signal_data['macd_signal'])  else 0
+
+
+             macd_signal = 1 if (signal_data['macd'] > signal_data['macd_signal']) and (-25 <= signal_data['macd_hist'] <= 20)  else 0
+             rsi_signal = 1 if signal_data['rsi'] > 50 else 0
+             sma_signal = 1 if signal_data['sma14'] > last_price else 0
+             trade_signal_buy = macd_signal and rsi_signal and sma_signal
+
+             macd_signal = 1 if (signal_data['macd'] < signal_data['macd_signal']) and (-25 <= signal_data['macd_hist'] <= 20)  else 0
+             rsi_signal = 1 if signal_data['rsi'] < 50 else 0
+             sma_signal = 1 if signal_data['sma14'] < last_price else 0
+             trade_signal_sell = macd_signal and rsi_signal and sma_signal
+
              trade_data = trade.get_trade(symbol, time_frame)
              pnl = self.get_pnl(trade_data, last_price)
+             gain_perc = pnl / (last_price * self.amount)
 
-             if (macd_trade_signal == 1):
+             if trade_signal_buy:
                  if len(trade_data) == 0:
                      trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id)
                  else:
                      if trade_data['position'] == 'short':
                          trade.close_trade(trade_data['id'], signal_data_id ,last_price)
                          trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id)
-             elif (macd_trade_signal == 0):
+             if trade_signal_sell:
                  if len(trade_data) == 0:
                      trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id)
                  else:
@@ -112,8 +123,8 @@ class SignalData:
      def save_signal_data(self, signal_data):
          self.connection = mysql.connector.connect(**self.db_config)
          cursor = self.connection.cursor()
-         sql = "INSERT INTO signal_data (symbol, time_frame, rsi, macd, macd_signal, macd_hist, sma200, bid_volume, ask_volume, bid_price, ask_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-         cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], signal_data['rsi'], float(signal_data['macd']), float(signal_data['macd_signal']), float(signal_data['macd_hist']), signal_data['sma200'], signal_data['bid_volume'], signal_data['ask_volume'], signal_data['bid_price'], signal_data['ask_price'], ))
+         sql = "INSERT INTO signal_data (symbol, time_frame, rsi, macd, macd_signal, macd_hist, sma200, sma14, bid_volume, ask_volume, bid_price, ask_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+         cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], signal_data['rsi'], float(signal_data['macd']), float(signal_data['macd_signal']), float(signal_data['macd_hist']), signal_data['sma200'], signal_data['sma14'], signal_data['bid_volume'], signal_data['ask_volume'], signal_data['bid_price'], signal_data['ask_price'], ))
          self.connection.commit()
          id = cursor.lastrowid
          cursor.close()
