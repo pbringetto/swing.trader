@@ -13,7 +13,7 @@ class Exchange:
         self.ftx = f.FtxClient(os.getenv('FTX_KEY'), os.getenv('FTX_SECRET'))
 
     def get_close_prices(self, symbol, time_frame):
-        start_time = int(time.time() - (time_frame * 38))
+        start_time = int(time.time() - (time_frame * 300))
         end_time = int(time.time())
         response = self.ftx.get_historical_prices(symbol, time_frame, start_time, end_time)
         close_prices = []

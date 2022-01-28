@@ -41,29 +41,20 @@ class SignalData:
 
              print(time_frame['tf'])
              close_prices = exchange.get_close_prices(symbol, time_frame['tf'])
-             macd = self.get_macd_signal(close_prices)
-             rsi = self.get_rsi_signal(close_prices)
+             macd = self.get_macd_signal(close_prices[-28:])
+             rsi = self.get_rsi_signal(close_prices[-28:])
+             sma14 = indicator.get_sma(close_prices[-28:], 14)
+             sma, bollinger_up, bollinger_down = self.get_bollinger_bands(close_prices[-30:], 14)
 
-             print(indicator.calcSma(close_prices, 200))
-             print(indicator.calcSma(close_prices, 14))
+             print(sma14)
 
-
-             sma200 = self.get_sma(close_prices, 200)
-             sma14 = self.get_sma(close_prices, 14)
-
-
-
-             sma, bollinger_up, bollinger_down = self.get_bollinger_bands(close_prices, 14)
-             #print(sma[-1])
-             #print(bollinger_down[-1])
-             #print(bollinger_up[-1])
 
              time_frame_data.append({
                  "last_price": close_prices[-1],
                  "symbol": symbol,
                  "time_frame": time_frame,
-                 "sma200": sma200,
-                 "sma14": sma14,
+                 "sma200": 0,
+                 "sma14": sma14[-1],
                  "rsi": rsi[0],
                  "macd": macd[0],
                  "macd_signal": macd[1],

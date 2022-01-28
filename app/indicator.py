@@ -1,6 +1,5 @@
 import typing
 import pandas as pd
-import numpy as np
 
 class Indicator:
 
@@ -16,22 +15,11 @@ class Indicator:
         bollinger_down = bollinger_down.tolist()
         return sma, bollinger_up, bollinger_down
 
-    def calcSma(self, data, smaPeriod):
-        j = next(i for i, x in enumerate(data) if x is not None)
-        our_range = range(len(data))[j + smaPeriod - 1:]
-        empty_list = [None] * (j + smaPeriod - 1)
-        sub_result = [np.mean(data[i - smaPeriod + 1: i + 1]) for i in our_range]
-        return np.array(empty_list + sub_result)
-
-    def get_sma(self, prices, intervals, window_size = 3):
-        numbers_series = pd.Series(prices)
-        #sma = prices.rolling(intervals).mean()
-        #sma = sma.tolist()
-        windows = numbers_series.rolling(window_size)
-        moving_averages = windows.mean()
-        moving_averages_list = moving_averages.tolist()
-        return moving_averages_list[-1]
-        #return sma[-1]
+    def get_sma(self, prices, intervals):
+        prices = pd.Series(prices)
+        sma = prices.rolling(window=intervals).mean()
+        sma = sma.tolist()
+        return sma
 
     def get_macd(self, price, slow, fast, smooth):
         price = pd.DataFrame({'close': price})
