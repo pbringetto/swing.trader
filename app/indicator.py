@@ -1,28 +1,37 @@
 import typing
 import pandas as pd
+import numpy as np
 
 class Indicator:
 
-    def get_sma2(self, prices, intervals):
-        return prices.rolling(intervals).mean()
-
     def get_bollinger_bands(self, prices, intervals):
         prices = pd.Series(prices)
-        sma = self.get_sma2(prices, intervals) # <-- Get SMA for 20 days
-        std = prices.rolling(intervals).std() # <-- Get rolling standard deviation for 20 days
-        bollinger_up = sma + std * 2 # Calculate top band
-        bollinger_down = sma - std * 2 # Calculate bottom band
-        print(sma)
-        print(std)
-        print(bollinger_up)
-        print(bollinger_down)
+        sma = prices.rolling(intervals).mean()
+        std = prices.rolling(intervals).std()
+        bollinger_up = sma + std * 2
+        bollinger_down = sma - std * 2
+        sma = sma.tolist()
+        std = std.tolist()
+        bollinger_up = bollinger_up.tolist()
+        bollinger_down = bollinger_down.tolist()
+        return sma, bollinger_up, bollinger_down
+
+    def calcSma(self, data, smaPeriod):
+        j = next(i for i, x in enumerate(data) if x is not None)
+        our_range = range(len(data))[j + smaPeriod - 1:]
+        empty_list = [None] * (j + smaPeriod - 1)
+        sub_result = [np.mean(data[i - smaPeriod + 1: i + 1]) for i in our_range]
+        return np.array(empty_list + sub_result)
 
     def get_sma(self, prices, intervals, window_size = 3):
         numbers_series = pd.Series(prices)
+        #sma = prices.rolling(intervals).mean()
+        #sma = sma.tolist()
         windows = numbers_series.rolling(window_size)
         moving_averages = windows.mean()
         moving_averages_list = moving_averages.tolist()
         return moving_averages_list[-1]
+        #return sma[-1]
 
     def get_macd(self, price, slow, fast, smooth):
         price = pd.DataFrame({'close': price})

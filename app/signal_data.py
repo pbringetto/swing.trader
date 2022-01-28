@@ -30,6 +30,7 @@ class SignalData:
          }
 
      def process_data(self, symbol, amount, time_frames):
+         indicator = i.Indicator()
          print(symbol)
          self.amount = amount
          exchange = x.Exchange()
@@ -42,9 +43,21 @@ class SignalData:
              close_prices = exchange.get_close_prices(symbol, time_frame['tf'])
              macd = self.get_macd_signal(close_prices)
              rsi = self.get_rsi_signal(close_prices)
+
+             print(indicator.calcSma(close_prices, 200))
+             print(indicator.calcSma(close_prices, 14))
+
+
              sma200 = self.get_sma(close_prices, 200)
              sma14 = self.get_sma(close_prices, 14)
-             bb = self.get_bollinger_bands(close_prices, 14)
+
+
+
+             sma, bollinger_up, bollinger_down = self.get_bollinger_bands(close_prices, 14)
+             #print(sma[-1])
+             #print(bollinger_down[-1])
+             #print(bollinger_up[-1])
+
              time_frame_data.append({
                  "last_price": close_prices[-1],
                  "symbol": symbol,
@@ -55,6 +68,8 @@ class SignalData:
                  "macd": macd[0],
                  "macd_signal": macd[1],
                  "macd_hist": macd[2],
+                 "bollinger_down": bollinger_down[-1],
+                 "bollinger_up": bollinger_up[-1],
                  "ask_volume": latest_orderbook['asks'][0][1],
                  "bid_volume": latest_orderbook['bids'][0][1],
                  "ask_price": latest_orderbook['asks'][0][0],
@@ -108,7 +123,7 @@ class SignalData:
 
      def get_bollinger_bands(self, close_prices, intervals):
           indicator = i.Indicator()
-          indicator.get_bollinger_bands(close_prices, intervals)
+          return indicator.get_bollinger_bands(close_prices, intervals)
 
      def get_sma(self, close_prices, intervals):
           indicator = i.Indicator()
@@ -128,8 +143,10 @@ class SignalData:
      def save_signal_data(self, signal_data):
          self.connection = mysql.connector.connect(**self.db_config)
          cursor = self.connection.cursor()
-         sql = "INSERT INTO signal_data (symbol, time_frame, rsi, macd, macd_signal, macd_hist, sma200, sma14, bid_volume, ask_volume, bid_price, ask_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-         cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], signal_data['rsi'], float(signal_data['macd']), float(signal_data['macd_signal']), float(signal_data['macd_hist']), signal_data['sma200'], signal_data['sma14'], signal_data['bid_volume'], signal_data['ask_volume'], signal_data['bid_price'], signal_data['ask_price'], ))
+         sql = "INSERT INTO signal_data (symbol, time_frame, rsi, macd, macd_signal, macd_hist, sma200, sma14, bid_volume, ask_volume, bid_price, ask_price, bollinger_down, bollinger_up) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+         cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], signal_data['rsi'], float(signal_data['macd']), float(signal_data['macd_signal']), float(signal_data['macd_hist']), signal_data['sma200'], signal_data['sma14'], signal_data['bid_volume'], signal_data['ask_volume'], signal_data['bid_price'], signal_data['ask_price'], signal_data['bollinger_down'], signal_data['bollinger_up'], ))
+         #sql = "INSERT INTO signal_data (symbol, time_frame, rsi, macd, macd_signal, macd_hist, sma200, sma14, bid_volume, ask_volume, bid_price, ask_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+         #cursor.execute(sql, (signal_data['symbol'], signal_data['time_frame']['tf'], signal_data['rsi'], float(signal_data['macd']), float(signal_data['macd_signal']), float(signal_data['macd_hist']), signal_data['sma200'], signal_data['sma14'], signal_data['bid_volume'], signal_data['ask_volume'], signal_data['bid_price'], signal_data['ask_price'], ))
          self.connection.commit()
          id = cursor.lastrowid
          cursor.close()

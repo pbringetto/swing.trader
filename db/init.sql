@@ -30,6 +30,8 @@ CREATE TABLE signal_data (
   ask_volume FLOAT(7),
   bid_price FLOAT(7),
   ask_price FLOAT(7),
+  bollinger_down FLOAT(7),
+  bollinger_up FLOAT(7),
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   primary key (id)
 );
