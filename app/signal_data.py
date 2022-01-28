@@ -23,7 +23,7 @@ class SignalData:
      def signal_data(self):
          signal_data = []
          for symbol in self.data["markets"]:
-             result = self.process_data(symbol['symbol'], symbol['amount'], self.data["time_frames"])
+             result = self.process_data(symbol['symbol'], float(symbol['amount']), self.data["time_frames"])
              signal_data.append(result)
          return {
              "signal_data": signal_data,
@@ -75,7 +75,9 @@ class SignalData:
              symbol = signal_data['symbol']
 
              trade_data = trade.get_trade(symbol, time_frame)
+
              pnl = self.get_pnl(trade_data, last_price)
+
              trade_signal_buy, trade_signal_sell = strategy.setup(last_price, signal_data['macd'], signal_data['macd_signal'], signal_data['macd_hist'], signal_data['rsi'], signal_data['sma14'])
 
              if trade_signal_buy:

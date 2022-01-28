@@ -2,11 +2,11 @@
   "markets" : [
     {
       "symbol": "BTC/USD",
-      "amount": 1
+      "amount": ".1"
     },
     {
       "symbol": "ETH/USD",
-      "amount": 10
+      "amount": 1
     }
   ],
   "time_frames": [
