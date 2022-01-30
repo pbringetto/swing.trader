@@ -24,3 +24,11 @@ class Exchange:
     def get_orderbook(self, symbol, depth):
         response = self.ftx.get_orderbook(symbol, depth)
         return response
+
+    def get_borrow_rates(self):
+        response = self.ftx.get_borrow_rates()
+        return response
+
+
+
+

@@ -36,11 +36,11 @@ class Trade:
         self.connection.close()
         self.save_trade_signal_data(trade_id, signal_id)
 
-    def open_trade(self, symbol, last_price, time_frame, amount, position, signal_id):
+    def open_trade(self, symbol, last_price, time_frame, amount, position, signal_id, fee = 0, pnl = 0):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "INSERT INTO trade (symbol, last_price, open_price, time_frame, amount, pnl, position) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (symbol, last_price, last_price, time_frame, amount, 0, position, ))
+        sql = "INSERT INTO trade (symbol, last_price, open_price, time_frame, amount, pnl, position, fee) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (symbol, last_price, last_price, time_frame, amount, pnl, position, fee, ))
         self.connection.commit()
         id = cursor.lastrowid
         cursor.close()

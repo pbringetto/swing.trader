@@ -13,6 +13,14 @@ CREATE TABLE trade (
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   amount FLOAT(7),
   position VARCHAR(8),
+  fee FLOAT(7),
+  primary key (id)
+);
+
+CREATE TABLE historical_data (
+  id BIGINT(8) AUTO_INCREMENT NOT NULL,
+  symbol VARCHAR(32),
+  date DATETIME DEFAULT CURRENT_TIMESTAMP,
   primary key (id)
 );
 

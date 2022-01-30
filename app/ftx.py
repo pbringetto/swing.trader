@@ -72,6 +72,9 @@ class FtxClient:
     def get_account_info(self) -> dict:
         return self._get(f'account')
 
+    def get_borrow_rates(self) -> dict:
+        return self._get(f'spot_margin/borrow_rates')
+
     def get_open_orders(self, market: str = None) -> List[dict]:
         return self._get(f'orders', {'market': market})
 

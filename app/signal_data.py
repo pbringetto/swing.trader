@@ -6,6 +6,7 @@ import os
 import json
 from dotenv import load_dotenv
 import mysql.connector
+from datetime import datetime
 
 class SignalData:
      def __init__(self):
@@ -37,6 +38,10 @@ class SignalData:
          trade = t.Trade()
          time_frame_data = []
          latest_orderbook = exchange.get_orderbook(symbol, 1)
+         #borrow_rates = exchange.get_borrow_rates()
+         #print(borrow_rates)
+
+
          for time_frame in time_frames:
 
              print(time_frame['tf'])
@@ -45,9 +50,6 @@ class SignalData:
              rsi = self.get_rsi_signal(close_prices[-28:])
              sma14 = indicator.get_sma(close_prices[-28:], 14)
              sma, bollinger_up, bollinger_down = self.get_bollinger_bands(close_prices[-30:], 14)
-
-             print(sma14)
-
 
              time_frame_data.append({
                  "last_price": close_prices[-1],
@@ -88,19 +90,34 @@ class SignalData:
 
              if trade_signal_buy:
                  if len(trade_data) == 0:
-                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id)
+                     taker_fee = (self.amount * last_price) * float(.002)
+                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
                  else:
                      if trade_data['position'] == 'short':
                          trade.close_trade(trade_data['id'], signal_data_id ,last_price)
-                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id)
+                         taker_fee = (self.amount * last_price) * float(.002)
+                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
              if trade_signal_sell:
                  if len(trade_data) == 0:
-                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id)
+                     margin_fee = (self.amount * last_price) * float(.005)
+                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
                  else:
                      if trade_data['position'] == 'long':
+                         maker_fee = (self.amount * last_price) * float(.0005)
                          trade.close_trade(trade_data['id'], signal_data_id, last_price)
-                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id)
+                         margin_fee = (self.amount * last_price) * float(.005)
+                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
              if len(trade_data) > 0:
+                 if trade_data['position'] == 'short':
+
+                     start = datetime.now()
+                     diff = trade_data['date'] - start
+                     diff_in_hours = diff.total_seconds() / 3600
+
+
+                     #print(start)
+                     #print(trade_data['date'])
+                     #print(diff_in_hours)
                  trade.update_trade(trade_data['id'], pnl, last_price)
 
      def get_pnl(self, trade_data, last_price):
