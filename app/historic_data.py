@@ -12,10 +12,8 @@ class HistoricData:
         ]
     def load_historic_data(self):
         history = hdm.HistoricDataModel()
-   
         for data in self.data:
-            print(data['symbol'])
             for candle in self.btc_data['result']['86400']:
-                print(candle)
-
-                history.new_candle(data['symbol'], candle[0], candle[1], candle[2], candle[3], candle[4], candle[5], candle[6])
+                if history.no_candle_exists(data['symbol'], candle[0]):
+                    print(history.no_candle_exists(data['symbol'], candle[0]))
+                    history.new_candle(data['symbol'], candle[0], candle[1], candle[2], candle[3], candle[4], candle[5], candle[6])

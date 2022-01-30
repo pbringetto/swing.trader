@@ -26,5 +26,13 @@ class HistoricDataModel:
         id = cursor.lastrowid
         cursor.close()
         self.connection.close()
-        self.save_trade_signal_data(id, signal_id)
         return id
+
+    def no_candle_exists(self, symbol, close_time):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor(buffered=True)
+        sql = 'SELECT id FROM historic_data WHERE symbol = %s AND close_time = %s'
+        cursor.execute(sql, (symbol, close_time, ))
+        cursor.close()
+        self.connection.close()
+        return 1 if cursor.rowcount == 0 else 0

@@ -28,7 +28,7 @@ CREATE TABLE historic_data (
   volume FLOAT(7),
   quote_volume FLOAT(7),
   primary key (id),
-  unique (symbol, close_time)
+  unique key `symbol_close_time` (`symbol`,`close_time`)
 );
 
 CREATE TABLE signal_data (
