@@ -17,7 +17,7 @@ class HistoricDataModel:
             'database': os.getenv('DB_DATABASE'),
         }
 
-    def new_candle(self, symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume, timestamp):
+    def new_candle(self, symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "INSERT INTO historic_data (symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
