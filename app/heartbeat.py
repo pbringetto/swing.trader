@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import app.signal_data as s
+import app.historic_data as h
 import json
 
 class Heartbeat:
@@ -7,8 +8,10 @@ class Heartbeat:
         self.symbols = {}
 
     def run(self):
-        object = s.SignalData()
-        object.signal_data()
+        signal = s.SignalData()
+        history = h.HistoricData()
+        signal.signal_data()
+        history.load_historic_data()
 
 def main():
   heartbeat = Heartbeat()

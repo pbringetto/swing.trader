@@ -17,11 +17,18 @@ CREATE TABLE trade (
   primary key (id)
 );
 
-CREATE TABLE historical_data (
+CREATE TABLE historic_data (
   id BIGINT(8) AUTO_INCREMENT NOT NULL,
   symbol VARCHAR(32),
-  date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  primary key (id)
+  close_time int(11),
+  open_price FLOAT(7),
+  high_price FLOAT(7),
+  low_price FLOAT(7),
+  close_price FLOAT(7),
+  volume FLOAT(7),
+  quote_volume FLOAT(7),
+  primary key (id),
+  unique (symbol, close_time)
 );
 
 CREATE TABLE signal_data (
