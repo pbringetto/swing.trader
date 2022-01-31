@@ -7,6 +7,8 @@ import json
 from dotenv import load_dotenv
 import mysql.connector
 from datetime import datetime
+import app.historic_data_model as hdm
+
 
 class SignalData:
      def __init__(self):
@@ -43,9 +45,14 @@ class SignalData:
 
 
          for time_frame in time_frames:
-
+             history = hdm.HistoricDataModel()
              print(time_frame['tf'])
-             close_prices = exchange.get_close_prices(symbol, time_frame['tf'])
+             candles = exchange.get_close_prices(symbol, time_frame['tf'])
+             close_prices = []
+             for candle in candles:
+                 if history.no_candle_exists(symbol, candle['startTime'], time_frame['tf']):
+                     history.new_candle(symbol, candle['startTime'], candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], 0, time_frame['tf'])
+                 close_prices.append(candle['close'])
              macd = self.get_macd_signal(close_prices[-28:])
              rsi = self.get_rsi_signal(close_prices[-28:])
              sma14 = indicator.get_sma(close_prices[-28:], 14)
