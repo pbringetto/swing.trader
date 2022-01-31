@@ -20,7 +20,7 @@ CREATE TABLE trade (
 CREATE TABLE historic_data (
   id BIGINT(8) AUTO_INCREMENT NOT NULL,
   symbol VARCHAR(32),
-  close_time int(11),
+  close_time INT(11),
   open_price FLOAT(7),
   high_price FLOAT(7),
   low_price FLOAT(7),

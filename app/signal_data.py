@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import mysql.connector
 from datetime import datetime
 import app.historic_data_model as hdm
-
+import time
 
 class SignalData:
      def __init__(self):
@@ -47,11 +47,29 @@ class SignalData:
          for time_frame in time_frames:
              history = hdm.HistoricDataModel()
              print(time_frame['tf'])
+
+
+             candles1 = history.get_candles(symbol, time_frame['tf'])
+             print(candles1)
+             for candle1 in candles1:
+                 print('-----------------------------')
+                 print(candle1)
+
              candles = exchange.get_close_prices(symbol, time_frame['tf'])
+
+
+
              close_prices = []
              for candle in candles:
-                 if history.no_candle_exists(symbol, candle['startTime'], time_frame['tf']):
-                     history.new_candle(symbol, candle['startTime'], candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], 0, time_frame['tf'])
+                 print(datetime.strptime(candle['startTime'], '%Y-%m-%dT%H:%M:%S+00:00'))
+
+
+                 ts = datetime.strptime(candle['startTime'], '%Y-%m-%dT%H:%M:%S+00:00')
+                 print(ts.timestamp())
+
+
+                 if history.no_candle_exists(symbol, int(ts.timestamp()), time_frame['tf']):
+                     history.new_candle(symbol, int(ts.timestamp()), candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], 0, time_frame['tf'])
                  close_prices.append(candle['close'])
              macd = self.get_macd_signal(close_prices[-28:])
              rsi = self.get_rsi_signal(close_prices[-28:])
