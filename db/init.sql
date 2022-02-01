@@ -29,7 +29,7 @@ CREATE TABLE historic_data (
   quote_volume FLOAT(7),
   time_frame INT(7),
   primary key (id),
-  unique key `symbol_close_time` (`symbol`,`close_time`)
+  unique key `symbol_close_time_time_frame` (`symbol`, `close_time`, `time_frame`)
 );
 
 CREATE TABLE signal_data (

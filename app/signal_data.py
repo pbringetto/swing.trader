@@ -48,39 +48,33 @@ class SignalData:
              history = hdm.HistoricDataModel()
              print(time_frame['tf'])
 
-
+             close_prices = []
              candles1 = history.get_candles(symbol, time_frame['tf'])
-             print(candles1)
+             #print(candles1)
              for candle1 in candles1:
-                 print('-----------------------------')
-                 print(candle1)
+                 close_prices.append(candle1['close_price'])
 
              candles = exchange.get_close_prices(symbol, time_frame['tf'])
+             ts = datetime.strptime(candles[0]['startTime'], '%Y-%m-%dT%H:%M:%S+00:00')
+             if history.no_candle_exists(symbol, int(ts.timestamp()), time_frame['tf']):
+                 history.new_candle(symbol, int(ts.timestamp()), candles[0]['open'], candles[0]['high'], candles[0]['low'], candles[0]['close'], candles[0]['volume'], 0, time_frame['tf'])
 
 
-
-             close_prices = []
-             for candle in candles:
-                 print(datetime.strptime(candle['startTime'], '%Y-%m-%dT%H:%M:%S+00:00'))
-
-
-                 ts = datetime.strptime(candle['startTime'], '%Y-%m-%dT%H:%M:%S+00:00')
-                 print(ts.timestamp())
-
-
-                 if history.no_candle_exists(symbol, int(ts.timestamp()), time_frame['tf']):
-                     history.new_candle(symbol, int(ts.timestamp()), candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], 0, time_frame['tf'])
-                 close_prices.append(candle['close'])
              macd = self.get_macd_signal(close_prices[-28:])
              rsi = self.get_rsi_signal(close_prices[-28:])
              sma14 = indicator.get_sma(close_prices[-28:], 14)
+             sma200 = indicator.get_sma(close_prices[-205:], 200)
+             #temp
+             sma200 = sma200[-1] if time_frame['tf'] <=  1209600 else 0
              sma, bollinger_up, bollinger_down = self.get_bollinger_bands(close_prices[-30:], 14)
-
+             print('--------------------------------------')
+             print(sma200)
+             #print(sma200[-1])
              time_frame_data.append({
                  "last_price": close_prices[-1],
                  "symbol": symbol,
                  "time_frame": time_frame,
-                 "sma200": 0,
+                 "sma200": sma200,
                  "sma14": sma14[-1],
                  "rsi": rsi[0],
                  "macd": macd[0],

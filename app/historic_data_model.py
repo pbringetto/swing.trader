@@ -18,7 +18,6 @@ class HistoricDataModel:
         }
 
     def get_candles(self, symbol, timeframe):
-        print('get candles')
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = 'SELECT * FROM historic_data WHERE symbol = %s AND time_frame = %s'
@@ -30,7 +29,6 @@ class HistoricDataModel:
         return results
 
     def new_candle(self, symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume, time_frame):
-        print('inserted')
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "INSERT INTO historic_data (symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume, time_frame) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -42,7 +40,6 @@ class HistoricDataModel:
         return id
 
     def no_candle_exists(self, symbol, close_time, time_frame):
-        #print('check if exists')
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor(buffered=True)
         sql = 'SELECT id FROM historic_data WHERE symbol = %s AND close_time = %s AND time_frame = %s'
