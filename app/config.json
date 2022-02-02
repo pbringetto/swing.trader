@@ -9,6 +9,7 @@
       "amount": 1
     }
   ],
+  "historic_time_frames": [86400, 604800, 2592000],
   "time_frames": [
     {
       "tf": 15,

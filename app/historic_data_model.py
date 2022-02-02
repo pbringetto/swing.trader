@@ -28,11 +28,11 @@ class HistoricDataModel:
         self.connection.close()
         return results
 
-    def new_candle(self, symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume, time_frame):
+    def new_candle(self, symbol, close_time, open_price, high_price, low_price, close_price, volume, time_frame):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "INSERT INTO historic_data (symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume, time_frame) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (symbol, close_time, open_price, high_price, low_price, close_price, volume, quote_volume, time_frame, ))
+        sql = "INSERT INTO historic_data (symbol, close_time, open_price, high_price, low_price, close_price, volume, time_frame) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (symbol, close_time, open_price, high_price, low_price, close_price, volume, time_frame, ))
         self.connection.commit()
         id = cursor.lastrowid
         cursor.close()

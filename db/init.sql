@@ -26,7 +26,6 @@ CREATE TABLE historic_data (
   low_price FLOAT(7),
   close_price FLOAT(7),
   volume FLOAT(7),
-  quote_volume FLOAT(7),
   time_frame INT(7),
   primary key (id),
   unique key `symbol_close_time_time_frame` (`symbol`, `close_time`, `time_frame`)
