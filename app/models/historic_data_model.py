@@ -29,6 +29,7 @@ class HistoricDataModel:
         return results
 
     def new_candle(self, symbol, close_time, open_price, high_price, low_price, close_price, volume, time_frame):
+        print(close_time)
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "INSERT INTO historic_data (symbol, close_time, open_price, high_price, low_price, close_price, volume, time_frame) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
@@ -44,6 +45,16 @@ class HistoricDataModel:
         cursor = self.connection.cursor(buffered=True)
         sql = 'SELECT id FROM historic_data WHERE symbol = %s AND close_time = %s AND time_frame = %s'
         cursor.execute(sql, (symbol, close_time,time_frame, ))
+        count = cursor.rowcount
+        cursor.close()
+        self.connection.close()
+        return 1 if count == 0 else 0
+
+    def need_historic_data(self):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor(buffered=True)
+        sql = 'SELECT id FROM historic_data LIMIT 1'
+        cursor.execute(sql)
         count = cursor.rowcount
         cursor.close()
         self.connection.close()

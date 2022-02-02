@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime
-import app.historic_data_model as hdm
+import app.models.historic_data_model as hdm
 
 class HistoricData:
     def __init__(self):
@@ -16,17 +16,19 @@ class HistoricData:
 
     def load_historic_data(self):
         history = hdm.HistoricDataModel()
-        for data in self.data:
-            with open(data['file']) as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=',')
-                line_count = 0
-                for row in csv_reader:
-                    if line_count == 0:
-                        print(f'Column names are {", ".join(row)}')
-                        line_count += 1
-                    else:
-                        line_count += 1
-                        dt = datetime.strptime(row[0], '%Y-%m-%d')
-                        if history.no_candle_exists(data['symbol'], dt.timestamp(), data['time_frame']):
-                            history.new_candle(data['symbol'], dt.timestamp(), row[1], row[2], row[3], row[4], row[6], data['time_frame'])
-                print(f'Processed {line_count} lines.')
+        if history.need_historic_data():
+            print('load histporic data')
+            for data in self.data:
+                with open(data['file']) as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter=',')
+                    line_count = 0
+                    for row in csv_reader:
+                        if line_count == 0:
+                            print(f'Column names are {", ".join(row)}')
+                            line_count += 1
+                        else:
+                            line_count += 1
+                            dt = datetime.strptime(row[0], '%Y-%m-%d')
+                            if history.no_candle_exists(data['symbol'], dt.timestamp(), data['time_frame']):
+                                history.new_candle(data['symbol'], dt.timestamp(), row[1], row[2], row[3], row[4], row[6], data['time_frame'])
+                    print(f'Processed {line_count} lines.')

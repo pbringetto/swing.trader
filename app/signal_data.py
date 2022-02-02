@@ -1,13 +1,14 @@
 import app.exchange as x
-import app.indicator as i
-import app.trade as t
+import app.packages.indicator as i
+import app.models.trade_model as t
 import app.strategy as s
 import os
 import json
 from dotenv import load_dotenv
 import mysql.connector
 from datetime import datetime
-import app.historic_data_model as hdm
+import app.models.historic_data_model as hdm
+
 import time
 
 class SignalData:
@@ -148,6 +149,7 @@ class SignalData:
              dt = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S+00:00')
              dt = datetime(dt.year, dt.month, dt.day)
              if self.history.no_candle_exists(symbol, int(dt.timestamp()), timeframe):
+                 print(candle)
                  self.history.new_candle(symbol, int(dt.timestamp()), candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], timeframe)
 
 
