@@ -25,6 +25,19 @@ class Exchange:
         response = self.ftx.get_borrow_rates()
         return response
 
+    def place_order(self, market, side, price, size):
+        print('place_order')
+        print(market)
+        print(side)
+        print(price)
+        print(size)
+        #return self.ftx.place_order(market, side, price, size)
+
+    def get_trades(self, market):
+        return self.ftx.get_trades(market)
+
+    def get_open_orders(self, market):
+            return self.ftx.get_open_orders(market)
 
 
 

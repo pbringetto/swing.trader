@@ -9,10 +9,10 @@ from ciso8601 import parse_datetime
 class FtxClient:
     _ENDPOINT = 'https://ftx.com/api/'
 
-    def __init__(self, api_key=None, api_secret=None, subaccount_name=None) -> None:
+    def __init__(self, api_key: str, api_secret: str, subaccount_name= None) -> None:
         self._session = Session()
-        self._api_key = "0"
-        self._api_secret = "0"
+        self._api_key = api_key
+        self._api_secret = api_secret
         self._subaccount_name = subaccount_name
 
     def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
@@ -36,8 +36,8 @@ class FtxClient:
         signature_payload = f'{ts}{prepared.method}{prepared.path_url}'.encode()
         if prepared.body:
             signature_payload += prepared.body
-        signature = hmac.new(self._api_secret.encode(), signature_payload, 'sha256').hexdigest()
-        request.headers['FTX-KEY'] = self._api_key
+        signature = hmac.new(str(self._api_secret).encode(), signature_payload, 'sha256').hexdigest()
+        request.headers['FTX-KEY'] = str(self._api_key)
         request.headers['FTX-SIGN'] = signature
         request.headers['FTX-TS'] = str(ts)
         if self._subaccount_name:

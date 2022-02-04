@@ -13,8 +13,8 @@ import time
 
 class SignalData:
      def __init__(self):
-         self.amount = 0.25
          load_dotenv()
+         self.amount = .001
          self.history = hdm.HistoricDataModel()
          self.data = json.load(open('/home/user/app/app/config.json', 'r'))
          self.db_config = {
@@ -36,7 +36,7 @@ class SignalData:
 
      def process_data(self, symbol, amount, time_frames):
          indicator = i.Indicator()
-         print(symbol)
+         #print(symbol)
          self.amount = amount
          exchange = x.Exchange()
          trade = t.Trade()
@@ -44,15 +44,17 @@ class SignalData:
          latest_orderbook = exchange.get_orderbook(symbol, 1)
          #borrow_rates = exchange.get_borrow_rates()
          #print(borrow_rates)
+         #print(exchange.get_open_orders(symbol))
+
 
 
          for time_frame in time_frames:
-             print(time_frame['tf'])
+             #print(time_frame['tf'])
 
              if time_frame['tf'] in self.data["historic_time_frames"]:
                  close_prices = []
                  candles1 = self.history.get_candles(symbol, time_frame['tf'])
-                 print(candles1[0])
+                 #print(candles1[0])
                  for candle1 in candles1:
                      close_prices.append(candle1['close_price'])
 
@@ -96,6 +98,7 @@ class SignalData:
      def analyze_signals(self, time_frame_data, latest_orderbook):
          trade = t.Trade()
          strategy = s.Strategy()
+         exchange = x.Exchange()
 
          for i, signal_data in enumerate(time_frame_data):
 
@@ -113,22 +116,26 @@ class SignalData:
              if trade_signal_buy:
                  if len(trade_data) == 0:
                      taker_fee = (self.amount * last_price) * float(.002)
+                     exchange.place_order(symbol, 'buy', 0, self.amount)
                      trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
                  else:
                      if trade_data['position'] == 'short':
                          trade.close_trade(trade_data['id'], signal_data_id ,last_price)
                          taker_fee = (self.amount * last_price) * float(.002)
+                         exchange.place_order(symbol, 'buy', 0, self.amount)
                          trade.open_trade(symbol, last_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
              if trade_signal_sell:
                  if len(trade_data) == 0:
                      margin_fee = (self.amount * last_price) * float(.005)
-                     trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
+                     #exchange.place_order(symbol, 'short', 0, self.amount)
+                     #trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
                  else:
                      if trade_data['position'] == 'long':
                          maker_fee = (self.amount * last_price) * float(.0005)
                          trade.close_trade(trade_data['id'], signal_data_id, last_price)
                          margin_fee = (self.amount * last_price) * float(.005)
-                         trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
+                         #exchange.place_order(symbol, 'short', 0, self.amount)
+                         #trade.open_trade(symbol, last_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
              if len(trade_data) > 0:
                  if trade_data['position'] == 'short':
 
@@ -149,7 +156,7 @@ class SignalData:
              dt = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S+00:00')
              dt = datetime(dt.year, dt.month, dt.day)
              if self.history.no_candle_exists(symbol, int(dt.timestamp()), timeframe):
-                 print(candle)
+                 #print(candle)
                  self.history.new_candle(symbol, int(dt.timestamp()), candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], timeframe)
 
 
