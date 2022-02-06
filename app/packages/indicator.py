@@ -15,6 +15,12 @@ class Indicator:
         bollinger_down = bollinger_down.tolist()
         return sma, bollinger_up, bollinger_down
 
+    def get_ema(self, prices, intervals, smoothing=2):
+        ema = [sum(prices[:intervals]) / intervals]
+        for price in prices[intervals:]:
+            ema.append((price * (smoothing / (1 + intervals))) + ema[-1] * (1 - (smoothing / (1 + intervals))))
+        return ema
+
     def get_sma(self, prices, intervals):
         prices = pd.Series(prices)
         sma = prices.rolling(window=intervals).mean()

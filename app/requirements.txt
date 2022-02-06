@@ -4,3 +4,4 @@ requests
 python-dotenv
 ciso8601
 pandas
+cfg_load
