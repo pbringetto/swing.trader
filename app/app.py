@@ -66,8 +66,9 @@ def get_signals(time_frame) -> List[Dict]:
     return results
 
 def get_time_frames() -> List[Dict]:
-    tf_data = json.load(open('/home/user/app/app/config.json', 'r'))
-    return tf_data["time_frames"]
+    import cfg_load
+    alpha = cfg_load.load('/home/user/app/alpha.yaml')
+    return alpha["time_frames"]
 
 @app.route('/time_frames')
 def time_frames() -> str:
