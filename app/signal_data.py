@@ -146,7 +146,7 @@ class SignalData:
                              trade.open_trade(symbol, ask_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
                  if trade_signal_sell:
                      if len(trade_data) == 0:
-                         #margin_fee = (self.amount * ask_price) * float(.005)
+                         margin_fee = (self.amount * ask_price) * float(.005)
                          #exchange.place_order(symbol, 'short', 0, self.amount)
                          #trade.open_trade(symbol, ask_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
                      else:
