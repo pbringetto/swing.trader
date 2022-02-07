@@ -135,24 +135,24 @@ class SignalData:
              if time_frame in alpha["trade_time_frames"]:
                  if trade_signal_buy:
                      if len(trade_data) == 0:
-                         taker_fee = (self.amount * ask_price) * self.taker_fee
+                         taker_fee = (self.amount * ask_order_price) * self.taker_fee
                          exchange.place_order(symbol, 'buy', 0, self.amount)
-                         trade.open_trade(symbol, ask_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
+                         trade.open_trade(symbol, ask_order_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
                      else:
                          if trade_data['position'] == 'short':
-                             trade.close_trade(trade_data['id'], signal_data_id ,ask_price)
-                             taker_fee = (self.amount * ask_price) * self.taker_fee
+                             trade.close_trade(trade_data['id'], signal_data_id, bid_order_price)
+                             taker_fee = (self.amount * ask_order_price) * self.taker_fee
                              exchange.place_order(symbol, 'buy', 0, self.amount)
-                             trade.open_trade(symbol, ask_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
+                             trade.open_trade(symbol, ask_order_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
                  if trade_signal_sell:
                      if len(trade_data) == 0:
-                         margin_fee = (self.amount * ask_price) * float(.005)
+                         margin_fee = (self.amount * ask_order_price) * float(.005)
                          #exchange.place_order(symbol, 'short', 0, self.amount)
                          #trade.open_trade(symbol, ask_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
                      else:
                          if trade_data['position'] == 'long':
-                             maker_fee = (self.amount * ask_price) * self.maker_fee
-                             trade.close_trade(trade_data['id'], signal_data_id, ask_price)
+                             maker_fee = (self.amount * ask_order_price) * self.maker_fee
+                             trade.close_trade(trade_data['id'], signal_data_id, ask_order_price)
                              #margin_fee = (self.amount * ask_price) * float(.005)
                              #exchange.place_order(symbol, 'short', 0, self.amount)
                              #trade.open_trade(symbol, ask_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
