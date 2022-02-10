@@ -91,10 +91,10 @@ class SignalData:
                  "ask_price": latest_orderbook['asks'][0][0],
                  "bid_price": latest_orderbook['bids'][0][0]
              })
-         self.analyze_signals(time_frame_data, latest_orderbook)
+         self.analyze_signals(time_frame_data, latest_orderbook, time_frame)
          return time_frame_data
 
-     def analyze_signals(self, time_frame_data, latest_orderbook):
+     def analyze_signals(self, time_frame_data, latest_orderbook, time_frame):
          trade = t.Trade()
          strategy = s.Strategy()
          exchange = x.Exchange()
@@ -103,10 +103,16 @@ class SignalData:
          for i, signal_data in enumerate(time_frame_data):
 
              time_frame = signal_data['time_frame']['tf']
-             ask_price = latest_orderbook['asks'][0][0]
-             bid_price = latest_orderbook['bids'][0][0]
-             ask_volume = latest_orderbook['asks'][0][1]
-             bid_volume = latest_orderbook['bids'][0][1]
+
+             ask_price, ask_volume = latest_orderbook['asks'][0]
+
+             #ask_price = latest_orderbook['asks'][0][0]
+             #ask_volume = latest_orderbook['asks'][0][1]
+
+             bid_price, bid_volume = latest_orderbook['bids'][0]
+
+             #bid_price = latest_orderbook['bids'][0][0]
+             #bid_volume = latest_orderbook['bids'][0][1]
 
              print('    ')
              print('ask------------')
@@ -130,10 +136,10 @@ class SignalData:
 
              pnl = self.get_pnl(trade_data, ask_price)
 
-             trade_signal_buy, trade_signal_sell = strategy.setup(ask_price, bid_price, ask_volume, bid_volume, signal_data['macd'], signal_data['macd_signal'], signal_data['macd_hist'], signal_data['rsi'], signal_data['sma14'])
+             trade_signal_buy, trade_signal_sell = strategy.setup(ask_price, bid_price, ask_volume, bid_volume, signal_data['macd'], signal_data['macd_signal'], signal_data['macd_hist'], signal_data['rsi'], signal_data['sma14'], time_frame)
 
              if time_frame in alpha["trade_time_frames"]:
-                 if trade_signal_buy:
+                 if trade_signal_buy and (ask_order_price != 0):
                      if len(trade_data) == 0:
                          taker_fee = (self.amount * ask_order_price) * self.taker_fee
                          exchange.place_order(symbol, 'buy', 0, self.amount)
@@ -144,15 +150,15 @@ class SignalData:
                              taker_fee = (self.amount * ask_order_price) * self.taker_fee
                              exchange.place_order(symbol, 'buy', 0, self.amount)
                              trade.open_trade(symbol, ask_order_price, time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
-                 if trade_signal_sell:
+                 if trade_signal_sell and (bid_order_price != 0):
                      if len(trade_data) == 0:
                          margin_fee = (self.amount * ask_order_price) * float(.005)
                          #exchange.place_order(symbol, 'short', 0, self.amount)
                          #trade.open_trade(symbol, ask_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
                      else:
                          if trade_data['position'] == 'long':
-                             maker_fee = (self.amount * ask_order_price) * self.maker_fee
-                             trade.close_trade(trade_data['id'], signal_data_id, ask_order_price)
+                             maker_fee = (self.amount * bid_order_price) * self.maker_fee
+                             trade.close_trade(trade_data['id'], signal_data_id, bid_order_price)
                              #margin_fee = (self.amount * ask_price) * float(.005)
                              #exchange.place_order(symbol, 'short', 0, self.amount)
                              #trade.open_trade(symbol, ask_price, time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))

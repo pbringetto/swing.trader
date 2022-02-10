@@ -7,7 +7,7 @@ class Strategy:
          self.macd_hist_trigger_range = alpha['macd_hist_trigger_range']
          self.rsi_trigger_range = alpha['rsi_trigger_range']
 
-     def setup(self, ask_price, bid_price, ask_volume, bid_volume, macd, macd_signal, macd_hist, rsi, sma14):
+     def setup(self, ask_price, bid_price, ask_volume, bid_volume, macd, macd_signal, macd_hist, rsi, sma14, tf):
          macd_signal = 1 if (macd > macd_signal) and (self.macd_hist_trigger_range[0] <= macd_hist <= self.macd_hist_trigger_range[1])  else 0
          rsi_signal = 1 if rsi < self.rsi_trigger_range[0] else 0
          sma_signal = 1 if sma14 > ask_price else 0
