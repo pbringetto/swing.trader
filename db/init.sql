@@ -31,6 +31,8 @@ CREATE TABLE trade (
     close_price FLOAT(7),
     date DATETIME DEFAULT CURRENT_TIMESTAMP,
     amount FLOAT(7),
+    open_amount FLOAT(7),
+    close_amount FLOAT(7),
     position VARCHAR(8),
     fee FLOAT(7),
     primary key (id)

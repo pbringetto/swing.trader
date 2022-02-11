@@ -26,11 +26,11 @@ class Trade:
         cursor.close()
         self.connection.close()
 
-    def close_trade(self, trade_id, signal_id, close_price):
+    def close_trade(self, trade_id, signal_id, close_price, fee, pnl, close_amount):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "UPDATE trade SET close = %s, close_price = %s WHERE id = %s"
-        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), close_price, trade_id ))
+        sql = "UPDATE trade SET close = %s, close_price = %s, fee = %s, pnl = %s, close_amount = %s WHERE id = %s"
+        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), close_price, fee, trade_id, pnl, close_amount))
         self.connection.commit()
         cursor.close()
         self.connection.close()
@@ -39,8 +39,8 @@ class Trade:
     def open_trade(self, symbol, last_price, time_frame, amount, position, signal_id, fee = 0, pnl = 0):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "INSERT INTO trade (symbol, last_price, open_price, time_frame, amount, pnl, position, fee) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (symbol, last_price, last_price, time_frame, amount, pnl, position, fee, ))
+        sql = "INSERT INTO trade (symbol, last_price, open_price, time_frame, amount, pnl, position, fee, open_amount) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (symbol, last_price, last_price, time_frame, amount, pnl, position, fee, amount,))
         self.connection.commit()
         id = cursor.lastrowid
         cursor.close()
