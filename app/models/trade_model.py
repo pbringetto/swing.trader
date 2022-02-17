@@ -6,7 +6,7 @@ import mysql.connector
 from datetime import datetime
 now = datetime.now()
 
-class Trade:
+class TradeDataModel:
     def __init__(self):
         load_dotenv()
         self.db_config = {
@@ -16,6 +16,30 @@ class Trade:
             'port': os.getenv('DB_PORT'),
             'database': os.getenv('DB_DATABASE'),
         }
+
+    def save_order(self, order_id, symbol, time_frame, status):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        sql = "INSERT INTO `order` (order_id, symbol, time_frame, status) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (order_id, symbol, time_frame, status, ))
+        self.connection.commit()
+        cursor.close()
+        self.connection.close()
+
+    def get_orders(self, symbol, timeframe, status):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        sql = 'SELECT * FROM `order` WHERE symbol = %s AND time_frame = %s AND status = %s'
+        cursor.execute(sql, (symbol, timeframe, status, ))
+        columns = cursor.description
+        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
+        cursor.close()
+        self.connection.close()
+        return [] if len(results) == 0 else results[0]
+
+
+
+
 
     def update_trade(self, trade_id, pnl, last_price):
         self.connection = mysql.connector.connect(**self.db_config)

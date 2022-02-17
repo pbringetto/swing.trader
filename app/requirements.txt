@@ -2,6 +2,7 @@ Flask
 mysql-connector
 requests
 python-dotenv
-ciso8601
 pandas
 cfg_load
+krakenex
+pykrakenapi

@@ -9,11 +9,12 @@ class Heartbeat:
 
     def run(self):
         signal = s.SignalData()
-        history = h.HistoricData()
-        history.load_historic_data()
+        #history = h.HistoricData()
+        #history.load_historic_data()
         signal.signal_data()
 
 
 def main():
+  print('thump')
   heartbeat = Heartbeat()
   heartbeat.run()

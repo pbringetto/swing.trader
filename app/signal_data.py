@@ -1,8 +1,8 @@
-import os
-from dotenv import load_dotenv
 from datetime import datetime
 import cfg_load
-import app.exchange as x
+import krakenex
+from pykrakenapi import KrakenAPI
+import time
 import app.packages.indicator as i
 import app.models.trade_model as t
 import app.strategy as s
@@ -10,167 +10,130 @@ import app.models.historic_data_model as hdm
 import app.models.signal_data_model as sdm
 import app.helpers.util as u
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
+import pandas as pd
+pd.set_option('display.max_rows', 1000)
+pd.set_option('display.max_columns', 1000)
+pd.set_option('display.width', 1000)
 
 class SignalData:
-     def __init__(self):
-         load_dotenv()
-         self.db_config = {
-             'user': os.getenv('DB_USER'),
-             'password': os.getenv('DB_USER_PASSWORD'),
-             'host': os.getenv('DB_HOST'),
-             'port': os.getenv('DB_PORT'),
-             'database': os.getenv('DB_DATABASE'),
-         }
+    def __init__(self):
+        self.trade = t.TradeDataModel()
+        k = krakenex.API()
+        k.load_key('/home/user/app/kraken.key')
+        self.k = KrakenAPI(k)
 
-     def signal_data(self):
-         signal_data = []
-         for symbol in alpha["markets"]:
-             result = self.process_data(symbol['symbol'], float(symbol['amount']), alpha["time_frames"])
-             signal_data.append(result)
-         return {
-             "signal_data": signal_data,
-         }
+    def signal_data(self):
+        account_data = self.get_account_data()
+        for symbol in alpha["pairs"]:
+            pair_data = self.get_pair_data(symbol['symbol'])
+            self.time_frame_signals(symbol, float(symbol['amount']), alpha["time_frames"], account_data, pair_data)
 
-     def process_data(self, symbol, amount, time_frames):
-         indicator = i.Indicator()
-         history_data_model = hdm.HistoricDataModel()
-         self.amount = amount
-         exchange = x.Exchange()
-         trade = t.Trade()
-         time_frame_data = []
-         latest_orderbook = exchange.get_orderbook(symbol, 10)
-         bid_order_price, bid_order_volume = self.get_order_price(latest_orderbook['bids'])
-         ask_order_price, ask_order_volume = self.get_order_price(latest_orderbook['asks'])
-         self.taker_fee = float(.004)
-         self.maker_fee = float(.001)
-         for time_frame in time_frames:
-             if time_frame['tf'] in alpha["historic_time_frames"]:
-                 close_prices = []
-                 candles1 = history_data_model.get_candles(symbol, time_frame['tf'])
-                 for candle1 in candles1:
-                     close_prices.append(candle1['close_price'])
-                 if time_frame['tf'] in [86400,604800]:
-                     sma200 = indicator.get_sma(close_prices, 200)[-1]
-                 else:
-                     sma200 = 0
-             else:
-                 sma200 = 0
+    def time_frame_signals(self, symbol, amount, time_frames, account_data, pair_data):
+        strategy = s.Strategy()
+        for time_frame in time_frames:
+            time_frame_data = self.get_time_frame_data(symbol['symbol'], time_frame['tf'])
+            trade_signal_buy, trade_signal_sell = strategy.setup(self.get_strategy_params(time_frame_data['ohlc'], pair_data))
+            self.evaluate_signals(symbol, trade_signal_buy, trade_signal_sell, time_frame, pair_data, account_data)
 
-             close_prices = []
-             candles = exchange.get_close_prices(symbol, time_frame['tf'])
-             for candle in candles:
-                 close_prices.append(candle['close'])
-                 self.save_history(time_frame['tf'], candle['startTime'], symbol, candle)
+    def evaluate_signals(self, symbol, trade_signal_buy, trade_signal_sell, time_frame, pair_data, account_data):
+        has_open_time_frame_order = self.time_frame_order_status(symbol['symbol'], time_frame, 'open')
+        if trade_signal_buy:
+            self.buy_trigger(has_open_time_frame_order, time_frame, symbol, pair_data, account_data)
+        if trade_signal_sell:
+            self.sell_trigger(has_open_time_frame_order, time_frame, symbol, pair_data, account_data)
 
-             if time_frame['tf'] not in alpha["historic_time_frames"]:
-                 sma200 = indicator.get_sma(close_prices, 200)[-1]
-                 if not u.is_integer_num(sma200):
-                     sma200 = 0
+    def buy_trigger(self, has_open_time_frame_order, time_frame, symbol, pair_data, account_data):
+        if not has_open_time_frame_order:
+            time.sleep(1)
+            order_info = self.place_order(time_frame, symbol, 'buy', 'open', pair_data, account_data)
 
-             ema50 = indicator.get_ema(close_prices, 50, 2)
-             macd, macd_signal, macd_hist = indicator.get_macd(close_prices[-28:], 26, 12, 9)
-             rsi = indicator.get_rsi(close_prices[-28:], 14)
-             sma14 = indicator.get_sma(close_prices[-28:], 14)
-             sma, bollinger_up, bollinger_down = indicator.get_bollinger_bands(close_prices[-30:], 14)
+    def sell_trigger(self, has_open_time_frame_order, time_frame, symbol, pair_data, account_data):
+        if has_open_time_frame_order:
+            time.sleep(1)
+            order_info = self.place_order(time_frame, symbol, 'sell', 'closed', pair_data, account_data)
 
-             time_frame_data.append({
-                 "ask_price": close_prices[-1],
-                 "symbol": symbol,
-                 "time_frame": time_frame,
-                 "ema50": ema50[-1],
-                 "sma200": 0,
-                 "sma14": sma14[-1],
-                 "rsi": rsi,
-                 "macd": macd,
-                 "macd_signal": macd_signal,
-                 "macd_hist": macd_hist,
-                 "bollinger_down": bollinger_down[-1],
-                 "bollinger_up": bollinger_up[-1],
-                 "ask_volume": ask_order_volume,
-                 "bid_volume": bid_order_volume,
-                 "ask_price": ask_order_price,
-                 "bid_price": bid_order_price
-             })
+    def place_order(self, time_frame, symbol, type, status, pair_data, account_data):
+        trade = t.TradeDataModel()
+        order_response = self.k.add_standard_order(symbol['symbol'], type, 'limit', symbol['amount'], self.get_limit(symbol, pair_data, type), price2=None, leverage=None, oflags=None, starttm=0, expiretm=0, userref=None, validate=False)
+        print(order_response['txid'])
+        for txid in order_response['txid']:
+            trade.save_order(txid, symbol['symbol'], time_frame['tf'], status)
 
-         self.analyze_signals(time_frame_data, time_frame)
-         return time_frame_data
+    def get_limit(self, symbol, pair_data, type):
+        bid = float(pair_data['ticker_information'].loc[symbol['symbol'], 'b'][0]) + 10000
+        ask = float(pair_data['ticker_information'].loc[symbol['symbol'], 'a'][0]) - 10000
+        return ask if type == 'buy' else bid
 
-     def analyze_signals(self, time_frame_data, time_frame):
-         trade = t.Trade()
-         strategy = s.Strategy()
-         exchange = x.Exchange()
-         signal_data_model = sdm.SignalDataModel()
-         for i, signal_data in enumerate(time_frame_data):
-             time_frame = signal_data['time_frame']['tf']
-             signal_data_id = signal_data_model.save_signal_data(signal_data)
-             symbol = signal_data['symbol']
-             trade_data = trade.get_trade(symbol, time_frame)
-             pnl = self.get_pnl(trade_data, signal_data['ask_price'])
-             trade_signal_buy, trade_signal_sell = strategy.setup(signal_data['ask_price'], signal_data['bid_price'], signal_data['ask_volume'], signal_data['bid_volume'], signal_data['macd'], signal_data['macd_signal'], signal_data['macd_hist'], signal_data['rsi'], signal_data['sma14'])
-             if time_frame in alpha["trade_time_frames"]:
-                 if trade_signal_buy and (signal_data['ask_price'] != 0):
-                     if len(trade_data) == 0:
-                         taker_fee = (self.amount * signal_data['ask_price']) * self.taker_fee
-                         exchange.place_order(symbol, 'buy', 0, self.amount)
-                         open_amount = self.amount * signal_data['ask_price']
-                         trade.open_trade(symbol, signal_data['ask_price'], time_frame, open_amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
-                     else:
-                         if trade_data['position'] == 'short':
-                             trade.close_trade(trade_data['id'], signal_data_id, signal_data['bid_price'], 0, 0, 0)
-                             taker_fee = (self.amount * signal_data['ask_price']) * self.taker_fee
-                             exchange.place_order(symbol, 'buy', 0, self.amount)
-                             trade.open_trade(symbol, signal_data['ask_price'], time_frame, self.amount, 'long', signal_data_id, taker_fee, -abs(taker_fee))
-                 if trade_signal_sell and (signal_data['bid_price'] != 0):
-                     if len(trade_data) == 0:
-                         margin_fee = (self.amount * signal_data['ask_price']) * float(.005)
-                         #exchange.place_order(symbol, 'short', 0, self.amount)
-                         #trade.open_trade(symbol, signal_data['ask_price'], time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
-                     else:
-                         if trade_data['position'] == 'long':
-                             taker_fee = (self.amount * signal_data['bid_price']) * self.taker_fee
-                             exchange.place_order(symbol, 'sell', 0, self.amount)
-                             close_amount = self.amount * signal_data['bid_price']
-                             open_amount = self.amount * signal_data['open_price']
-                             fee = (trade_data['fee'] + taker_fee)
-                             pnl = (close_amount - open_amount) - fee
-                             trade.close_trade(trade_data['id'], signal_data_id, signal_data['bid_price'], fee, pnl, close_amount)
-                             #margin_fee = (self.amount * signal_data['ask_price']) * float(.005)
-                             #exchange.place_order(symbol, 'short', 0, self.amount)
-                             #trade.open_trade(symbol, signal_data['ask_price'], time_frame, self.amount, 'short', signal_data_id, margin_fee, -abs(margin_fee))
-                 if len(trade_data) > 0:
-                     if trade_data['position'] == 'short':
-                         start = datetime.now()
-                         diff = trade_data['date'] - start
-                         diff_in_hours = diff.total_seconds() / 3600
-                     taker_fee = ((self.amount * trade_data['open_price']) * self.taker_fee)
-                     fee = (trade_data['fee'] + taker_fee)
-                     pnl = ((self.amount * signal_data['bid_price']) - (self.amount * trade_data['open_price'])) - fee
-                     trade.update_trade(trade_data['id'], pnl, signal_data['ask_price'])
+    def time_frame_order_status(self, symbol, time_frame, status):
+        trade = t.TradeDataModel()
+        order_data = trade.get_orders(symbol, time_frame['tf'], status)
+        return 1 if len(order_data) != 0 else 0
 
-     def save_history(self, timeframe, date, symbol, candle):
-         history_data_model = hdm.HistoricDataModel()
-         if timeframe in alpha["historic_time_frames"]:
-             dt = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S+00:00')
-             dt = datetime(dt.year, dt.month, dt.day)
-             if history_data_model.no_candle_exists(symbol, int(dt.timestamp()), timeframe):
-                 history_data_model.new_candle(symbol, int(dt.timestamp()), candle['open'], candle['high'], candle['low'], candle['close'], candle['volume'], timeframe)
+    def get_strategy_params(self, close_prices, pair_data):
+        indicator_data = self.get_indicator_data(close_prices)
+        return {
+            "ask_price": pair_data['ask_price'],
+            "bid_price": pair_data['bid_price'],
+            "macd": indicator_data['macd'],
+            "macd_signal": indicator_data['macd_signal'],
+            "macd_hist": indicator_data['macd_hist'],
+            "rsi": indicator_data['rsi'],
+            "sma14": indicator_data['sma14'],
+        }
 
-     def get_pnl(self, trade_data, ask_order_price):
-          pnl = 0
-          if len(trade_data) > 0:
-              if(trade_data['position'] == 'long'):
-                  pnl = round((float(ask_order_price) * float(trade_data['amount'])) - (float(trade_data['open_price'] * float(trade_data['amount']))), 2)
-              else:
-                  pnl = round((float(trade_data['open_price'] * float(trade_data['amount'])) - (float(ask_order_price) * float(trade_data['amount']))), 2)
-          return pnl
+    def get_time_frame_data(self, symbol, time_frame):
+        ohlc, last = self.k.get_ohlc_data(symbol, time_frame)
+        time.sleep(1)
+        return {
+            "ohlc": ohlc,
+            "last": last,
+        }
 
-     def get_order_price(self, prices):
-         total_volume = 0
-         order_price = 0
-         for price in prices:
-             volume = price[1]
-             total_volume = total_volume + volume
-             if(total_volume >= self.amount):
-                 return price[0], total_volume
+    def get_account_data(self):
+        account_balance = {}
+        open_orders = self.k.get_open_orders()
+        time.sleep(1)
+        closed_orders = self.k.get_closed_orders()
+        closed_orders = closed_orders[0].query('status == "closed"', inplace = False)
+        time.sleep(1)
+        account_balance = self.k.get_account_balance()
+        time.sleep(1)
+        return {
+            "account_balance": account_balance,
+            "open_orders": open_orders,
+            "closed_orders": closed_orders.loc[:, closed_orders.columns],
+        }
+
+    def get_pair_data(self, symbol):
+        order_book = self.k.get_order_book(symbol, 10, True)
+        time.sleep(1)
+        trade_volume = self.k.get_trade_volume(symbol)
+        time.sleep(1)
+        ticker_information = self.k.get_ticker_information(symbol)
+        time.sleep(1)
+        return {
+            "ask_price": order_book[0]['price'].iloc[0],
+            "bid_price": order_book[1]['price'].iloc[0],
+            "fee_currency": trade_volume[0],
+            "taker_fee": trade_volume[2][symbol]['fee'],
+            "maker_fee": trade_volume[3][symbol]['fee'],
+            "ticker_information": ticker_information,
+        }
+
+    def get_indicator_data(self, close_prices):
+        indicator = i.Indicator()
+        macd, macd_signal, macd_hist = indicator.get_macd(close_prices['close'][::-1][-28:], 26, 12, 9)
+        sma, bollinger_up, bollinger_down = indicator.get_bollinger_bands(close_prices['close'][::-1][-30:], 14)
+        return {
+            "rsi": indicator.get_rsi(close_prices['close'][::-1][-30:], 14)[-1],
+            "ema50": indicator.get_ema(close_prices['close'][::-1][-100:], 50)[-1],
+            "sma14": indicator.get_sma(close_prices['close'][-28:], 14)[-1],
+            "macd": macd,
+            "macd_signal": macd_signal,
+            "macd_hist": macd_hist,
+            "sma14": sma[-1],
+            "bollinger_up": bollinger_up[-1],
+            "bollinger_down": bollinger_down[-1],
+        }
 
 

@@ -8,14 +8,12 @@ services:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
-      - EXCHANGE_KEY=${EXCHANGE_KEY}
-      - EXCHANGE_SECRET=${EXCHANGE_SECRET}
     build: .
     links:
       - db
     labels:
       ofelia.enabled: "true"
-      ofelia.job-exec.app.schedule: "@every 15s"
+      ofelia.job-exec.app.schedule: "@every 45s"
       ofelia.job-exec.app.command: "task"
     ports:
       - "8888:8888"
