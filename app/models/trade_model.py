@@ -17,26 +17,58 @@ class TradeDataModel:
             'database': os.getenv('DB_DATABASE'),
         }
 
-    def save_order(self, order_id, symbol, time_frame, status):
+    def save_order(self, txid, pair, time_frame, status):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "INSERT INTO `order` (order_id, symbol, time_frame, status) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (order_id, symbol, time_frame, status, ))
+        sql = "INSERT IGNORE INTO `order` (txid, pair, time_frame, status) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (txid, pair, time_frame, status, ))
         self.connection.commit()
         cursor.close()
         self.connection.close()
 
-    def get_orders(self, symbol, timeframe, status):
+    def get_orders(self, pair, timeframe, status):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = 'SELECT * FROM `order` WHERE symbol = %s AND time_frame = %s AND status = %s'
-        cursor.execute(sql, (symbol, timeframe, status, ))
+        sql = 'SELECT * FROM `order` WHERE pair = %s AND time_frame = %s AND status = %s'
+        cursor.execute(sql, (pair, timeframe, status, ))
         columns = cursor.description
         results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
         cursor.close()
         self.connection.close()
         return [] if len(results) == 0 else results[0]
 
+    def get_order(self, txid):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        sql = 'SELECT * FROM `order` WHERE txid = %s'
+        cursor.execute(sql, (txid, ))
+        columns = cursor.description
+        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
+        cursor.close()
+        self.connection.close()
+        return [] if len(results) == 0 else results[0]
+
+    def save_trade(self, txid, pair, cost, fee, price, closed_at):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        sql = "INSERT IGNORE INTO trade (txid, pair, cost, fee, price, closed_at) VALUES (%s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (txid, pair, cost, fee, price, closed_at, ))
+        self.connection.commit()
+        id = cursor.lastrowid
+        cursor.close()
+        self.connection.close()
+        return id
+
+    def get_trade(self, pair, timeframe):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        sql = 'SELECT * FROM trade LEFT JOIN `order` ON `order`.txid = trade.txid AND trade.pair = %s AND `order`.time_frame = %s AND trade.closed_at IS NULL'
+        cursor.execute(sql, (pair, timeframe, ))
+        columns = cursor.description
+        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
+        cursor.close()
+        self.connection.close()
+        return [] if len(results) == 0 else results[0]
 
 
 
@@ -60,11 +92,11 @@ class TradeDataModel:
         self.connection.close()
         self.save_trade_signal_data(trade_id, signal_id)
 
-    def open_trade(self, symbol, last_price, time_frame, amount, position, signal_id, fee = 0, pnl = 0):
+    def open_trade(self, pair, last_price, time_frame, amount, position, signal_id, fee = 0, pnl = 0):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "INSERT INTO trade (symbol, last_price, open_price, time_frame, amount, pnl, position, fee, open_amount) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (symbol, last_price, last_price, time_frame, amount, pnl, position, fee, amount,))
+        sql = "INSERT INTO trade (pair, last_price, open_price, time_frame, amount, pnl, position, fee, open_amount) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (pair, last_price, last_price, time_frame, amount, pnl, position, fee, amount,))
         self.connection.commit()
         id = cursor.lastrowid
         cursor.close()
@@ -80,14 +112,3 @@ class TradeDataModel:
         self.connection.commit()
         cursor.close()
         self.connection.close()
-
-    def get_trade(self, symbol, timeframe):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        sql = 'SELECT * FROM trade WHERE symbol = %s AND time_frame = %s AND close IS NULL'
-        cursor.execute(sql, (symbol, timeframe, ))
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        return [] if len(results) == 0 else results[0]

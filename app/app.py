@@ -29,6 +29,23 @@ def get_orders() -> List[Dict]:
     connection.close()
     return results
 
+def get_trades() -> List[Dict]:
+    config = {
+        'user': os.getenv('DB_USER'),
+        'password': os.getenv('DB_USER_PASSWORD'),
+        'host': os.getenv('DB_HOST'),
+        'port': os.getenv('DB_PORT'),
+        'database': os.getenv('DB_DATABASE'),
+    }
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor()
+    cursor.execute('SELECT * FROM `trade`')
+    columns = cursor.description
+    results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
+    cursor.close()
+    connection.close()
+    return results
+
 def get_time_frames() -> List[Dict]:
     import cfg_load
     alpha = cfg_load.load('/home/user/app/alpha.yaml')
@@ -41,6 +58,10 @@ def time_frames() -> str:
 @app.route('/orders')
 def orders() -> str:
     return json.dumps({'orders': get_orders()}, default = defaultconverter)
+
+@app.route('/trades')
+def trades() -> str:
+    return json.dumps({'trades': get_trades()}, default = defaultconverter)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8888, debug=True)
