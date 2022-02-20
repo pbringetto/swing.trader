@@ -10,9 +10,9 @@ def convert_dict_str_vals_to_float(d):
         d[k] = float(v) if is_float(v) else v
     return d
 
-def is_float(element: Any) -> bool:
+def is_float(v) -> bool:
     try:
-        float(element)
+        float(v)
         return True
     except ValueError:
         return False
