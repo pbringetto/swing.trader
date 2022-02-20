@@ -7,5 +7,6 @@ def is_integer_num(n):
 
 def convert_dict_vals_to_float(d):
     for k, v in d.items():
-        d[k] = float(v) if v.isdigit() else v
+        d[k] = float(v) if (isinstance(v, str) and v.isdigit()) else v
     return d
+    
