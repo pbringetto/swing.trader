@@ -2,6 +2,23 @@ import typing
 import pandas as pd
 
 class Indicator:
+    def get_indicator_data(self, close_prices):
+        indicator = i.Indicator()
+        macd, macd_signal, macd_hist = indicator.get_macd(close_prices['close'][::-1][-28:], 26, 12, 9)
+        sma, bollinger_up, bollinger_down = indicator.get_bollinger_bands(close_prices['close'][::-1][-30:], 14)
+        return {
+            "rsi": indicator.get_rsi(close_prices['close'][::-1][-30:], 14)[-1],
+            "ema50": indicator.get_ema(close_prices['close'][::-1][-100:], 50)[-1],
+            "sma14": indicator.get_sma(close_prices['close'][-28:], 14)[-1],
+            "sma8": indicator.get_sma(close_prices['close'][-28:], 8)[-1],
+            "sma13": indicator.get_sma(close_prices['close'][-28:], 13)[-1],
+            "macd": macd,
+            "macd_signal": macd_signal,
+            "macd_hist": macd_hist,
+            "sma14": sma[-1],
+            "bollinger_up": bollinger_up[-1],
+            "bollinger_down": bollinger_down[-1],
+        }
 
     def get_bollinger_bands(self, prices, intervals):
         sma = prices.rolling(intervals).mean()

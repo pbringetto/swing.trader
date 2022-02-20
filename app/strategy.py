@@ -1,24 +1,30 @@
+import app.packages.indicator as i
 import cfg_load
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
-#15, 60, 300, 900, 3600, 14400, 86400
 
 class Strategy:
      def __init__(self):
          self.macd_hist_trigger_range = alpha['macd_hist_trigger_range']
          self.rsi_trigger_range = alpha['rsi_trigger_range']
 
-     def setup(self, params):
-         for k, v in params.items():
-             params[k] = float(v)
+     def get_strategy_params:
 
+
+     def get_strategy_params(self, close_prices, pair_data):
+        indicator = i.Indicator()
+        return pair_data | indicator.get_indicator_data(close_prices)
+        #for k, v in params.items():
+        #    params[k] = float(v)
+        #return params
+
+     def setup(self, ohlc, pair_data):
+         params =  self.get_strategy_params(ohlc, pair_data)
          macd_signal = 1 if (params['macd'] > params['macd_signal']) and 5 >= params['macd_hist'] >= -5 else 0
          rsi_signal = 1 if params['rsi'] < self.rsi_trigger_range[0] else 0
          sma_signal = 1 if params['sma14'] > params['ask_price'] else 0
          buy = (macd_signal and sma_signal) or rsi_signal
-
          macd_signal = 1 if (params['macd'] < params['macd_signal']) and 5 >= params['macd_hist'] >= -5 else 0
          rsi_signal = 1 if params['rsi'] > self.rsi_trigger_range[1] else 0
          sma_signal = 1 if params['sma14'] < params['ask_price'] else 0
          sell = (macd_signal and rsi_signal and sma_signal) or (params['rsi'] > 75)
-
          return buy, sell

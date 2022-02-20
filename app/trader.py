@@ -3,7 +3,7 @@ import cfg_load
 import krakenex
 from pykrakenapi import KrakenAPI
 import time
-import app.packages.indicator as i
+#import app.packages.indicator as i
 import app.models.trade_model as t
 import app.strategy as s
 import app.models.signal_data_model as sdm
@@ -37,7 +37,8 @@ class Trader:
         strategy = s.Strategy()
         for time_frame in time_frames:
             time_frame_data = self.get_time_frame_data(pair['pair'], time_frame['tf'])
-            trade_signal_buy, trade_signal_sell = strategy.setup(self.get_strategy_params(time_frame_data['ohlc'], pair_data))
+            #trade_signal_buy, trade_signal_sell = strategy.setup(self.get_strategy_params(time_frame_data['ohlc'], pair_data))
+            trade_signal_buy, trade_signal_sell = strategy.setup(time_frame_data['ohlc'], pair_data)
             self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame, pair_data, account_data)
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame, pair_data, account_data):
@@ -93,18 +94,6 @@ class Trader:
 
     def get_bid_ask(self, pair_data, pair):
         return float(pair_data['ticker_information'].loc[pair['pair'], 'b'][0]), float(pair_data['ticker_information'].loc[pair['pair'], 'a'][0])
-
-    def get_strategy_params(self, close_prices, pair_data):
-        indicator_data = self.get_indicator_data(close_prices)
-        return {
-            "ask_price": pair_data['ask_price'],
-            "bid_price": pair_data['bid_price'],
-            "macd": indicator_data['macd'],
-            "macd_signal": indicator_data['macd_signal'],
-            "macd_hist": indicator_data['macd_hist'],
-            "rsi": indicator_data['rsi'],
-            "sma14": indicator_data['sma14'],
-        }
 
     def get_time_frame_data(self, pair, time_frame):
         ohlc, last = self.k.get_ohlc_data(pair, time_frame)
@@ -164,6 +153,10 @@ class Trader:
             "ticker_information": ticker_information,
         }
 
+    def get_strategy_params(self, close_prices, pair_data):
+        indicator = i.Indicator()
+        return pair_data | indicator.get_indicator_data(close_prices)
+
     def get_indicator_data(self, close_prices):
         indicator = i.Indicator()
         macd, macd_signal, macd_hist = indicator.get_macd(close_prices['close'][::-1][-28:], 26, 12, 9)
@@ -172,6 +165,8 @@ class Trader:
             "rsi": indicator.get_rsi(close_prices['close'][::-1][-30:], 14)[-1],
             "ema50": indicator.get_ema(close_prices['close'][::-1][-100:], 50)[-1],
             "sma14": indicator.get_sma(close_prices['close'][-28:], 14)[-1],
+            "sma8": indicator.get_sma(close_prices['close'][-28:], 8)[-1],
+            "sma13": indicator.get_sma(close_prices['close'][-28:], 13)[-1],
             "macd": macd,
             "macd_signal": macd_signal,
             "macd_hist": macd_hist,
@@ -179,5 +174,3 @@ class Trader:
             "bollinger_up": bollinger_up[-1],
             "bollinger_down": bollinger_down[-1],
         }
-
-
