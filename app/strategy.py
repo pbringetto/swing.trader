@@ -1,4 +1,5 @@
 import app.packages.indicator as i
+import app.helpers.util as u
 import cfg_load
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
 
@@ -9,10 +10,7 @@ class Strategy:
 
      def get_strategy_params(self, close_prices, pair_data):
         indicator = i.Indicator()
-        return pair_data | indicator.get_indicator_data(close_prices)
-        #for k, v in params.items():
-        #    params[k] = float(v)
-        #return params
+        return u.convert_dict_vals_to_float(pair_data | indicator.get_indicator_data(close_prices))
 
      def setup(self, ohlc, pair_data):
          params =  self.get_strategy_params(ohlc, pair_data)
