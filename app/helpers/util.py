@@ -5,8 +5,14 @@ def is_integer_num(n):
          return n.is_integer()
      return False
 
-def convert_dict_vals_to_float(d):
+def convert_dict_str_vals_to_float(d):
     for k, v in d.items():
-        d[k] = float(v) if (isinstance(v, str) and v.isdigit()) else v
+        d[k] = float(v) if is_float(v) else v
     return d
-    
+
+def is_float(element: Any) -> bool:
+    try:
+        float(element)
+        return True
+    except ValueError:
+        return False
