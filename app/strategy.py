@@ -13,7 +13,7 @@ class Strategy:
         return u.convert_dict_str_vals_to_float({ "ask_price": ask_price, "bid_price": bid_price } | indicator.get_indicator_data(close_prices))
 
      def setup(self, ohlc, ask_price, bid_price):
-         params =  self.get_strategy_params(ohlc, pair_data)
+         params =  self.get_strategy_params(ohlc, ask_price, bid_price)
          macd_signal = 1 if (params['macd'] > params['macd_signal']) and 5 >= params['macd_hist'] >= -5 else 0
          rsi_signal = 1 if params['rsi'] < self.rsi_trigger_range[0] else 0
          sma_signal = 1 if params['sma14'] > params['ask_price'] else 0
