@@ -152,7 +152,7 @@ class Trader:
             "maker_fee": trade_volume[3][pair]['fee'],
             "ticker_information": ticker_information,
         }
-
+'''
     def get_strategy_params(self, close_prices, pair_data):
         indicator = i.Indicator()
         return pair_data | indicator.get_indicator_data(close_prices)
@@ -174,3 +174,4 @@ class Trader:
             "bollinger_up": bollinger_up[-1],
             "bollinger_down": bollinger_down[-1],
         }
+        '''

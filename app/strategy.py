@@ -7,9 +7,6 @@ class Strategy:
          self.macd_hist_trigger_range = alpha['macd_hist_trigger_range']
          self.rsi_trigger_range = alpha['rsi_trigger_range']
 
-     def get_strategy_params:
-
-
      def get_strategy_params(self, close_prices, pair_data):
         indicator = i.Indicator()
         return pair_data | indicator.get_indicator_data(close_prices)
