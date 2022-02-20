@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.9
 EXPOSE 8888
 RUN groupadd --gid 1000 user && \
     useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash user
