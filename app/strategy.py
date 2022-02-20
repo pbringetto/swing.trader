@@ -8,14 +8,12 @@ class Strategy:
          self.macd_hist_trigger_range = alpha['macd_hist_trigger_range']
          self.rsi_trigger_range = alpha['rsi_trigger_range']
 
-     def get_strategy_params(self, close_prices, pair_data):
+     def get_strategy_params(self, close_prices, ask_price, bid_price):
         indicator = i.Indicator()
-        return pair_data | indicator.get_indicator_data(close_prices)
+        return u.convert_dict_str_vals_to_float({ "ask_price": ask_price, "bid_price": bid_price } | indicator.get_indicator_data(close_prices))
 
-     def setup(self, ohlc, pair_data):
+     def setup(self, ohlc, ask_price, bid_price):
          params =  self.get_strategy_params(ohlc, pair_data)
-         params = u.convert_dict_str_vals_to_float(params)
-
          macd_signal = 1 if (params['macd'] > params['macd_signal']) and 5 >= params['macd_hist'] >= -5 else 0
          rsi_signal = 1 if params['rsi'] < self.rsi_trigger_range[0] else 0
          sma_signal = 1 if params['sma14'] > params['ask_price'] else 0

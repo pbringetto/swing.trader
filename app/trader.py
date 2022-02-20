@@ -37,7 +37,7 @@ class Trader:
         for time_frame in time_frames:
             time_frame_data = self.get_time_frame_data(pair['pair'], time_frame['tf'])
             #trade_signal_buy, trade_signal_sell = strategy.setup(self.get_strategy_params(time_frame_data['ohlc'], pair_data))
-            trade_signal_buy, trade_signal_sell = strategy.setup(time_frame_data['ohlc'], pair_data)
+            trade_signal_buy, trade_signal_sell = strategy.setup(time_frame_data['ohlc'], pair_data['ask_price'], pair_data['bid_price'])
             self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame, pair_data, account_data)
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame, pair_data, account_data):
