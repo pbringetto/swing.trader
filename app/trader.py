@@ -6,7 +6,6 @@ import time
 #import app.packages.indicator as i
 import app.models.trade_model as t
 import app.strategy as s
-import app.models.signal_data_model as sdm
 import app.helpers.util as u
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
 import pandas as pd
