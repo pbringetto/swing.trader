@@ -7,6 +7,7 @@ ADD setup.py /home/user/app
 ADD alpha.yaml /home/user/app
 ADD kraken.key /home/user/app
 ADD app /home/user/app/app
+ADD test /home/user/app/test
 ADD app/models ./models
 RUN cd /home/user/app && \
     pip install --no-cache-dir .

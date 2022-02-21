@@ -6,3 +6,4 @@ pandas
 cfg_load
 krakenex
 pykrakenapi
+pytest

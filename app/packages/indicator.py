@@ -5,19 +5,23 @@ class Indicator:
     def get_indicator_data(self, close_prices):
         macd, macd_signal, macd_hist = self.get_macd(close_prices['close'][::-1][-28:], 26, 12, 9)
         sma, bollinger_up, bollinger_down = self.get_bollinger_bands(close_prices['close'][::-1][-30:], 14)
-        return {
-            "rsi": self.get_rsi(close_prices['close'][::-1][-30:], 14)[-1],
-            "ema50": self.get_ema(close_prices['close'][::-1][-100:], 50)[-1],
-            "sma14": self.get_sma(close_prices['close'][-28:], 14)[-1],
-            "sma8": self.get_sma(close_prices['close'][-28:], 8)[-1],
-            "sma13": self.get_sma(close_prices['close'][-28:], 13)[-1],
-            "macd": macd,
-            "macd_signal": macd_signal,
-            "macd_hist": macd_hist,
-            "sma14": sma[-1],
-            "bollinger_up": bollinger_up[-1],
-            "bollinger_down": bollinger_down[-1],
+        #print(close_prices['close'][-24:])
+        #print(self.get_sma(close_prices['close'][-24:], 8))
+        r = {
+            #"rsi": self.get_rsi(close_prices['close'][::-1][-42:], 14)[-1],
+            #"ema50": self.get_ema(close_prices['close'][::-1][-150:], 50)[-1],
+            #"sma14": self.get_sma(close_prices['close'][-42:], 14)[-1],
+            "sma8": self.get_sma(close_prices['close'][-24:], 8)[-1],
+            "sma13": self.get_sma(close_prices['close'][-39:], 13)[-1],
+            #"macd": macd,
+            #"macd_signal": macd_signal,
+            #"macd_hist": macd_hist,
+            #"sma14": sma[-1],
+            #"bollinger_up": bollinger_up[-1],
+            #"bollinger_down": bollinger_down[-1],
         }
+        #print(r)
+        return r
 
     def get_bollinger_bands(self, prices, intervals):
         sma = prices.rolling(intervals).mean()
@@ -30,8 +34,8 @@ class Indicator:
         bollinger_down = bollinger_down.tolist()
         return sma, bollinger_up, bollinger_down
 
-    def get_sma(self, prices, intervals):
-        sma = prices.rolling(intervals).mean()
+    def get_sma(self, prices, window):
+        sma = prices.rolling(window = window, min_periods = 1).mean()
         sma = sma.tolist()
         return sma
 
