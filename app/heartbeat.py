@@ -6,8 +6,8 @@ class Heartbeat:
     def run(self):
         trader = t.Trader()
         backtest = b.Backtest()
-        #trader.go()
-        backtest.run_time_frame_candles()
+        trader.go()
+        #backtest.run_time_frame_candles()
 
 def main():
   heartbeat = Heartbeat()
