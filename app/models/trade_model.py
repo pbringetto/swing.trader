@@ -62,7 +62,7 @@ class TradeDataModel:
     def get_trade(self, pair, timeframe):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = 'SELECT * FROM trade LEFT JOIN `order` ON `order`.txid = trade.txid AND trade.pair = %s AND `order`.time_frame = %s AND trade.closed_at IS NULL'
+        sql = 'SELECT * FROM trade INNER JOIN `order` ON `order`.txid = trade.txid AND trade.pair = %s AND `order`.time_frame = %s AND trade.closed_at IS NULL'
         cursor.execute(sql, (pair, timeframe, ))
         columns = cursor.description
         results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]

@@ -21,7 +21,7 @@ class Strategy:
 
          macd_signal = 1 if (params['macd'] < params['macd_signal']) else 0
          #rsi_signal = 1 if params['rsi'] > time_frame['rsi_trigger_range'][1] else 0
-         sma_signal = 1 if params['sma8'] < params['sma13'] and (params['sma_hist'] > (price * time_frame['sma_hist_sell'])) else 0
+         sma_signal = 1 if (params['sma8'] < params['sma13']) or (params['sma_hist'] > (price * time_frame['sma_hist_sell'])) else 0
          sell = sma_signal or macd_signal
 
          return buy, sell, params

@@ -21,3 +21,9 @@ CREATE TABLE `trade` (
     closed_at DATETIME,
     primary key (txid)
 );
+
+CREATE TABLE `settings` (
+    id BIGINT(8) AUTO_INCREMENT NOT NULL,
+    enable_trading BIT,
+    primary key (id)
+);

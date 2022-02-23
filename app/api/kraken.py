@@ -11,6 +11,9 @@ class Kraken:
         kex.load_key('/home/user/app/kraken.key')
         self.k = KrakenAPI(kex)
 
+    def add_standard_order(self, pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate):
+        return self.k.add_standard_order(pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate)
+
     def get_time_frame_data(self, pair, time_frame):
         ohlc, last = self.k.get_ohlc_data(pair, time_frame)
         time.sleep(1)
