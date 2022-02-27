@@ -11,6 +11,9 @@ class Kraken:
         kex.load_key('/home/user/app/kraken.key')
         self.k = KrakenAPI(kex)
 
+    def cancel_open_order(self, txid):
+        return self.k.cancel_open_order(txid)
+
     def add_standard_order(self, pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate):
         return self.k.add_standard_order(pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate)
 
