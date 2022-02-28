@@ -14,14 +14,14 @@ class Strategy:
      def setup(self, ohlc, time_frame):
          params =  self.get_strategy_params(ohlc)
          price = float(ohlc['close'][::-1][0])
-         macd_signal = 1 if (params['macd'] > params['macd_signal']) else 0
+         #macd_signal = 1 if (params['macd'] > params['macd_signal']) else 0
          #rsi_signal = 1 if params['rsi'] < time_frame['rsi_trigger_range'][0] else 0
-         sma_signal = 1 if (params['sma8'] >= params['sma13']) else 0
+         sma_signal = True if (params['sma8'] >= params['sma13']) else False
          buy = sma_signal and (params['sma_hist'] <= (price * time_frame['sma_hist_buy']))
 
-         macd_signal = 1 if (params['macd'] < params['macd_signal']) else 0
+         #macd_signal = 1 if (params['macd'] < params['macd_signal']) else 0
          #rsi_signal = 1 if params['rsi'] > time_frame['rsi_trigger_range'][1] else 0
-         sma_signal = 1 if (params['sma8'] <= params['sma13']) or (params['sma_hist'] >= (price * time_frame['sma_hist_sell'])) else 0
+         sma_signal = True if (params['sma8'] <= params['sma13']) or (params['sma_hist'] >= (price * time_frame['sma_hist_sell'])) else False
          sell = sma_signal
 
          return buy, sell, params

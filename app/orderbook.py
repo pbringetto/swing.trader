@@ -4,4 +4,4 @@ import time
 
 class Orderbook:
     def __init__(self):
-        print('orderbook')
+        self.o = 0

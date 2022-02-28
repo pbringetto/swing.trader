@@ -17,6 +17,33 @@ class TradeDataModel:
             'database': os.getenv('DB_DATABASE'),
         }
 
+    def select(self, sql, params):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        cursor.execute(sql, params)
+        columns = cursor.description
+        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
+        cursor.close()
+        self.connection.close()
+        return [] if len(results) == 0 else results
+
+    def get_initial_position_order_by_timeframe(self, time_frame, type):
+        sql = """SELECT * FROM `order`
+                 WHERE time_frame = %s
+                 AND type = %s
+                 ORDER BY created_at DESC
+                 LIMIT 1"""
+        return self.select(sql, (time_frame, type, ))
+
+    def get_orders(self, pair = None, time_frame = None, status = None):
+        if pair and time_frame and status:
+            sql = 'SELECT * FROM `order` WHERE pair = %s AND time_frame = %s AND status = %s'
+            params = (pair, time_frame, status, )
+        else:
+            sql = 'SELECT * FROM `order`'
+            params = None
+        return self.select(sql, params)
+
     def save_order(self, txid, pair, time_frame, status, type, volume, price):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
@@ -25,21 +52,6 @@ class TradeDataModel:
         self.connection.commit()
         cursor.close()
         self.connection.close()
-
-    def get_orders(self, pair = None, time_frame = None, status = None):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        if pair and time_frame and status:
-            sql = 'SELECT * FROM `order` WHERE pair = %s AND time_frame = %s AND status = %s'
-            cursor.execute(sql, (pair, time_frame, status, ))
-        else:
-            cursor.execute('SELECT * FROM `order`')
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        #return [] if len(results) == 0 else results[0]
-        return results
 
     def get_order(self, txid):
         self.connection = mysql.connector.connect(**self.db_config)
@@ -120,7 +132,7 @@ class TradeDataModel:
     def get_position(self, txid):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = """SELECT * FROM  `position`WHERE txid = %s"""
+        sql = """SELECT * FROM  `position` WHERE txid = %s"""
         cursor.execute(sql, (txid, ))
         columns = cursor.description
         results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
@@ -154,15 +166,7 @@ class TradeDataModel:
         self.connection.close()
         return [] if len(results) == 0 else results[0]
 
-    def select(self, sql, params):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        cursor.execute(sql, params)
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        return [] if len(results) == 0 else results[0]
+
 
     def insert(self, sql, params):
         self.connection = mysql.connector.connect(**self.db_config)
