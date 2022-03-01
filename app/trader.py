@@ -36,13 +36,28 @@ class Trader:
         if self.account_data['open_orders'].empty:
             open_orders = self.trade.get_orders()
             for open_order in open_orders:
-                print(open_order['txid'])
                 self.trade.close_order(open_order['txid'])
         for index, row in self.account_data['open_orders'].iterrows():
             if (int(time.time()) - int(row['opentm'])) > 300:
-                print(index)
                 cancel_response = self.kraken.cancel_open_order(index)
                 self.trade.close_order(index)
+
+    def save_trades(self, closed_orders):
+        for index, row in closed_orders.iterrows():
+            if not self.trade.get_position_by_closing_txid(index):
+                if self.settings['created_at'] < datetime.fromtimestamp(row['closetm']):
+                    trade = self.trade.get_trade(index)
+                    if not trade:
+                        self.trade.save_trade(index, row['descr_pair'], row['cost'], row['fee'], row['price'], datetime.fromtimestamp(row['closetm']))
+                        self.trade.close_order(index)
+                    position = self.trade.get_position(index)
+                    if row['descr_type'] == 'buy':
+                        if not position:
+                            self.trade.open_position(index, 'long')
+                    if row['descr_type'] == 'sell':
+                        initial_position_orders = self.trade.get_initial_position_order_by_timeframe(row['userref'], 'buy')
+                        for initial_position_order in initial_position_orders:
+                            self.trade.close_position(initial_position_order['txid'], index)
 
     def time_frame_signals(self, pair, time_frames):
         for time_frame in time_frames:
@@ -53,33 +68,19 @@ class Trader:
             print('-------------------------------')
             print(time_frame['tf'])
             print("trade_signal_buy: " + str(trade_signal_buy) + " | " + "trade_signal_sell: " + str(trade_signal_sell))
-            print(indicator)
+            #print(indicator)
+            #print('has_open_time_frame_order: ' + str(has_open_time_frame_order))
+            #print('has_open_time_frame_position: ' + str(has_open_time_frame_position))
 
             buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame['tf'])
-            has_open_time_frame_trade, has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
-            self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_trade, has_open_time_frame_position, time_frame, pair)
-
-    def save_trades(self, closed_orders):
-        for index, row in closed_orders.iterrows():
-            if self.settings['created_at'] < datetime.fromtimestamp(row['closetm']):
-                trade = self.trade.get_trade(index)
-                if not trade:
-                    self.trade.save_trade(index, row['descr_pair'], row['cost'], row['fee'], row['price'], datetime.fromtimestamp(row['closetm']))
-                    self.trade.close_order(index)
-                position = self.trade.get_position(index)
-                if row['descr_type'] == 'buy':
-                    if not position:
-                        self.trade.open_position(index, 'long')
-                if row['descr_type'] == 'sell':
-                    initial_position_orders = self.trade.get_initial_position_order_by_timeframe(row['userref'], 'buy')
-                    for initial_position_order in initial_position_orders:
-                        self.trade.close_position(initial_position_order['txid'])
+            has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
+            self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
 
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
         time_frame_data = time_frame_data['ohlc'][::-1]
         now = datetime.now()
-        time_frame_data.loc[now.strftime("%Y-%m-%d, %H:%M:%S")] = [int(time.time()),0,0,0,self.pair_data['ticker_information']['a'][0][0],0,0,0]
+        time_frame_data.loc[now.strftime("%Y-%m-%d, %H:%M:%S")] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
         return time_frame_data
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame):
@@ -87,30 +88,23 @@ class Trader:
         account_status = self.kraken.account_status(self.account_data, pair, self.pair_data, bid, ask)
         return (trade_signal_buy and account_status['have_base_currency_to_buy']), (trade_signal_sell and account_status['have_quote_currency_to_sell'])
 
-    def trigger_orders(self, buy, sell, has_open_time_frame_order, has_open_time_frame_trade, has_open_time_frame_position, time_frame, pair):
+    def trigger_orders(self, buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair):
         if buy and not has_open_time_frame_order and not has_open_time_frame_position:
             self.buy_trigger(time_frame, pair)
 
-        #if self.trade_data:
-        #    price_limit_sell = self.strategy.sell_price_targets(float(self.trade_data['price']), .03, .01, float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]))
-        #else:
-        #    price_limit_sell = 0
-        #or (price_limit_sell and has_open_time_frame_position and not has_open_time_frame_order)
-        #print(price_limit_sell)
 
-        if (sell and has_open_time_frame_position and not has_open_time_frame_order):
+        price_limit_sell = self.strategy.sell_price_targets(float(self.trade_data['price']), float(time_frame['sma_hist_buy']), float(time_frame['sma_hist_sell']), float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0])) if self.trade_data else False
+
+
+        if ((sell or price_limit_sell) and has_open_time_frame_position and not has_open_time_frame_order):
             self.sell_trigger(time_frame, pair)
 
     def time_frame_state(self, pair, time_frame):
-        return self.time_frame_trade_state(pair['pair'], time_frame['tf'], 'open'), self.time_frame_order_state(pair['pair'], time_frame['tf'], 'open'), self.time_frame_position_state(pair['pair'], time_frame['tf'], 'open'),
+        return self.time_frame_order_state(pair['pair'], time_frame['tf'], 'open'), self.time_frame_position_state(pair['pair'], time_frame['tf'], 'open'),
 
     def time_frame_position_state(self, pair, time_frame, status):
         self.positions_data = self.trade.get_positions(pair, time_frame, status)
         return 1 if len(self.positions_data) != 0 else 0
-
-    def time_frame_trade_state(self, pair, time_frame, status):
-        self.trade_data = self.trade.get_trades(pair, time_frame)
-        return 1 if len(self.trade_data) != 0 else 0
         
     def time_frame_order_state(self, pair, time_frame, status):
         self.order_data = self.trade.get_orders(pair, time_frame, status)
@@ -136,4 +130,4 @@ class Trader:
         return ask if type == 'buy' else bid
 
     def get_bid_ask(self, pair):
-        return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 10, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 10
+        return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 5, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 5

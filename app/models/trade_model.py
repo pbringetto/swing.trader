@@ -17,7 +17,17 @@ class TradeDataModel:
             'database': os.getenv('DB_DATABASE'),
         }
 
-    def select(self, sql, params):
+    def select_one(self, sql, params):
+        self.connection = mysql.connector.connect(**self.db_config)
+        cursor = self.connection.cursor()
+        cursor.execute(sql, params)
+        columns = cursor.description
+        result = cursor.fetchone()
+        cursor.close()
+        self.connection.close()
+        return result
+
+    def select_all(self, sql, params):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         cursor.execute(sql, params)
@@ -33,7 +43,7 @@ class TradeDataModel:
                  AND type = %s
                  ORDER BY created_at DESC
                  LIMIT 1"""
-        return self.select(sql, (time_frame, type, ))
+        return self.select_all(sql, (time_frame, type, ))
 
     def get_orders(self, pair = None, time_frame = None, status = None):
         if pair and time_frame and status:
@@ -42,7 +52,12 @@ class TradeDataModel:
         else:
             sql = 'SELECT * FROM `order`'
             params = None
-        return self.select(sql, params)
+        return self.select_all(sql, params)
+
+    def get_position_by_closing_txid(self, closing_txid):
+        sql = """SELECT * FROM  `position` WHERE closing_txid = %s AND closed_at IS NOT NULL """
+        params = (closing_txid, )
+        return self.select_one(sql, params)
 
     def save_order(self, txid, pair, time_frame, status, type, volume, price):
         self.connection = mysql.connector.connect(**self.db_config)
@@ -104,7 +119,7 @@ class TradeDataModel:
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
         sql = "UPDATE `order` SET closed_at = %s, status = %s WHERE txid = %s"
-        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), 'closed', txid,))
+        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), 'closed', txid, ))
         self.connection.commit()
         cursor.close()
         self.connection.close()
@@ -120,11 +135,11 @@ class TradeDataModel:
         self.connection.close()
         return id
 
-    def close_position(self, txid):
+    def close_position(self, txid, closing_txid):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
-        sql = "UPDATE `position` SET closed_at = %s WHERE txid = %s"
-        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), txid,))
+        sql = "UPDATE `position` SET closed_at = %s, closing_txid = %s WHERE txid = %s"
+        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), closing_txid, txid, ))
         self.connection.commit()
         cursor.close()
         self.connection.close()

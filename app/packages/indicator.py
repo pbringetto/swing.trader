@@ -12,7 +12,7 @@ class Indicator:
         sma13 = self.get_sma(close_prices['close'][-39:], 13)[-1]
 
         r = {
-            #"rsi": self.get_rsi(close_prices['close'][::-1][-42:], 14)[-1],
+            "rsi": self.get_rsi(close_prices['close'][-42:], 14)[-1],
             #"ema50": self.get_ema(close_prices['close'][::-1][-150:], 50)[-1],
             #"sma14": self.get_sma(close_prices['close'][-42:], 14)[-1],
             "sma8": sma8,

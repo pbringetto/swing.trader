@@ -3,6 +3,7 @@ USE core;
 
 CREATE TABLE `position` (
     txid VARCHAR(48) NOT NULL,
+    closing_txid VARCHAR(48) NOT NULL,
     type VARCHAR(8),
     closed_at DATETIME,
     primary key (txid)
