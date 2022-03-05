@@ -116,13 +116,15 @@ class TradeDataModel:
         return [] if len(results) == 0 else results[0]
 
     def close_order(self, txid):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        sql = "UPDATE `order` SET closed_at = %s, status = %s WHERE txid = %s"
-        cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), 'closed', txid, ))
-        self.connection.commit()
-        cursor.close()
-        self.connection.close()
+        order = self.get_order(txid)
+        if order['closed_at'] != None:
+            self.connection = mysql.connector.connect(**self.db_config)
+            cursor = self.connection.cursor()
+            sql = "UPDATE `order` SET closed_at = %s, status = %s WHERE txid = %s"
+            cursor.execute(sql, (now.strftime('%Y-%m-%d %H:%M:%S'), 'closed', txid, ))
+            self.connection.commit()
+            cursor.close()
+            self.connection.close()
 
     def open_position(self, txid, type):
         self.connection = mysql.connector.connect(**self.db_config)

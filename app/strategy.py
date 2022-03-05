@@ -1,27 +1,45 @@
 import app.packages.indicator as i
 import app.helpers.util as u
+import app.models.signal_data_model as s
+import pandas as pd
 import cfg_load
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
 
 class Strategy:
-     def sell_price_targets(self, buy_price, profit_target, loss_target, bid_price):
-         return bool(((buy_price + (profit_target * buy_price)) <= bid_price) or ((buy_price + (loss_target * buy_price)) >= bid_price))
+    def __init__(self):
+        self.indicator = i.Indicator()
+        self.signal_data = s.SignalDataModel()
 
-     def get_strategy_params(self, close_prices):
-        indicator = i.Indicator()
-        return u.convert_dict_str_vals_to_float(indicator.get_indicator_data(close_prices))
+    def sell_price_targets(self, buy_price, profit_target, loss_target, bid_price):
+        return bool(((buy_price + (profit_target * buy_price)) <= bid_price) or ((buy_price + (loss_target * buy_price)) >= bid_price))
 
-     def setup(self, ohlc, time_frame):
-         params =  self.get_strategy_params(ohlc)
-         price = float(ohlc['close'][::-1][0])
-         #macd_signal = 1 if (params['macd'] > params['macd_signal']) else 0
-         #rsi_signal = 1 if params['rsi'] < time_frame['rsi_trigger_range'][0] else 0
-         sma_signal = True if (params['sma8'] >= params['sma13']) else False
-         buy = bool(sma_signal and (params['sma_hist'] <= (price * time_frame['sma_hist_buy'])))
+    def save_signal_data(self, data, pair, price, time_frame):
+        self.signal_data.save_signal_data(pair, price, time_frame, data['dev'], data['var'], data['rsi'], data['sma3'], data['sma8'], data['sma13'], data['sma3_13_hist'], data['sma8_13_hist'], data['macd'], data['macd_signal'], data['macd_hist'])
 
-         macd_signal = 1 if (params['macd'] < params['macd_signal']) else 0
-         rsi_signal = 1 if params['rsi'] > time_frame['rsi_trigger_range'][1] else 0
-         sma_signal = True if (params['sma8'] <= params['sma13']) else False
-         sell = bool(sma_signal or rsi_signal)
+    def get_strategy_data(self, close_prices, pair, price, time_frame):
+        data = u.convert_dict_str_vals_to_float(self.indicator.get_indicator_data(close_prices))
+        self.save_signal_data(data, pair, price, time_frame)
+        return data
 
-         return buy, sell, params
+    def setup(self, ohlc, time_frame, pair):
+        price = float(ohlc['close'][::-1][0])
+        data =  self.get_strategy_data(ohlc, pair['pair'], price, time_frame['tf'])
+        signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
+        print('-----------signal_data_history-------------')
+        if len(signal_data_history) >= 1:
+            signal_data_history = pd.DataFrame(signal_data_history)
+            print(signal_data_history)
+
+        #macd_signal = 1 if (data['macd'] > data['macd_signal']) else 0
+        rsi_signal = 1 if data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
+        sma_hist_buy = data['sma3'] - data['sma13']
+        sma_hist_buy_signal = (data['sma3'] - data['sma13']) < -abs(price * time_frame['sma_hist_buy'])
+        sma_signal = True if sma_hist_buy_signal else False
+        buy = bool(sma_signal and rsi_signal)
+
+        macd_signal = 1 if (data['macd'] < data['macd_signal']) else 0
+        rsi_signal = 1 if data['rsi'] > time_frame['rsi_trigger_range'][1] else 0
+        sma_signal = True if (data['sma3'] <= data['sma13']) else False
+        sell = bool(rsi_signal)
+
+        return buy, sell, data
