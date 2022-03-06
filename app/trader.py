@@ -1,6 +1,7 @@
 from datetime import datetime
 import cfg_load
-import app.models.trade_model as t
+import app.models.trade_model as tm
+import app.models.settings_model as sm
 import app.strategy as s
 import app.orderbook as o
 import app.helpers.util as u
@@ -15,19 +16,24 @@ import time
 class Trader:
     def __init__(self):
         self.strategy = s.Strategy()
-        self.trade = t.TradeDataModel()
+        self.trade = tm.TradeDataModel()
+        self.settings = sm.SettingsModel()
+        self.trading_enabled = self.settings.trading_enabled()
+        self.created_at = self.settings.created_at()
         self.kraken = k.Kraken()
         self.orderbook = o.Orderbook()
         self.account_data = self.kraken.get_account_data()
-        self.settings = self.trade.get_settings()
         self.pair_data = {}
         self.trade_data = {}
         self.order_data = {}
         self.positions_data = {}
 
+
     def go(self):
-        self.cancel_expired_order()
-        self.save_trades(self.account_data['closed_orders'])
+        if self.trading_enabled:
+            print('----------trading enabled-----------------------------------------------------------------------------')
+            self.cancel_expired_order()
+            self.save_trades(self.account_data['closed_orders'])
         for pair in alpha["pairs"]:
             self.pair_data = self.kraken.get_pair_data(pair['pair'])
             self.time_frame_signals(pair, alpha["time_frames"])
@@ -45,7 +51,7 @@ class Trader:
     def save_trades(self, closed_orders):
         for index, row in closed_orders.iterrows():
             if not self.trade.get_position_by_closing_txid(index):
-                if self.settings['created_at'] < datetime.fromtimestamp(row['closetm']):
+                if self.created_at < datetime.fromtimestamp(row['closetm']):
                     trade = self.trade.get_trade(index)
                     if not trade:
                         self.trade.save_trade(index, row['descr_pair'], row['cost'], row['fee'], row['price'], datetime.fromtimestamp(row['closetm']))
@@ -61,7 +67,8 @@ class Trader:
 
     def time_frame_signals(self, pair, time_frames):
         for time_frame in time_frames:
-            self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
+            if self.trading_enabled:
+                self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
             time_frame_data = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
             trade_signal_buy, trade_signal_sell, indicator = self.strategy.setup(time_frame_data, time_frame, pair)
 
@@ -70,9 +77,10 @@ class Trader:
             print("trade_signal_buy: " + str(trade_signal_buy) + " | " + "trade_signal_sell: " + str(trade_signal_sell))
             print(indicator)
 
-            buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame['tf'])
-            has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
-            self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
+            if self.trading_enabled:
+                buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame['tf'])
+                has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
+                self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
 
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)

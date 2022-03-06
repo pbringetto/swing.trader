@@ -57,8 +57,10 @@ CREATE TABLE `trade` (
 CREATE TABLE `settings` (
     id BIGINT(8) AUTO_INCREMENT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    enable_trading BIT,
+    setting VARCHAR(32),
+    enabled BIT,
     primary key (id)
 );
 
-INSERT INTO `settings` (enable_trading) VALUES (1);
+INSERT INTO `settings` (setting, enabled) VALUES ('trading_enabled', 0);
+INSERT INTO `settings` (setting, enabled) VALUES ('created_at', 1);
