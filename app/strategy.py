@@ -25,21 +25,11 @@ class Strategy:
         price = float(ohlc['close'][::-1][0])
         data =  self.get_strategy_data(ohlc, pair['pair'], price, time_frame['tf'])
         signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
-        print('-----------signal_data_history-------------')
 
         if len(signal_data_history) >= 1:
             signal_data_history = pd.DataFrame(signal_data_history)
-            #print(signal_data_history)
-            #print(signal_data_history['sma3_13_hist'].std())
 
             hist_len = 20 if len(signal_data_history) > 20 else 1
-            #sma3_13_hist_smallest = signal_data_history['sma3_13_hist'].nsmallest(n=hist_len)
-            #sma3_13_hist_largest = signal_data_history['sma3_13_hist'].nlargest(n=hist_len)
-            #print('-----------sma3_13_hist_smallest-------------')
-            #print(sma3_13_hist_smallest)
-            #print('-----------sma3_13_hist_largest-------------')
-            #print(sma3_13_hist_largest)
-
 
 
             peaks = self.peaks(signal_data_history, 'sma3_13_hist')
