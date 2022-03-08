@@ -2,7 +2,13 @@ import app.packages.indicator as i
 import app.helpers.util as u
 import app.models.signal_data_model as s
 import pandas as pd
+import pandas_ta
+import numpy as np
 import cfg_load
+import sklearn
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
 
 class Strategy:
@@ -43,7 +49,26 @@ class Strategy:
             print('-----------peaks_low-------------')
             print(peaks_low)
             print(peaks_low.mean())
+            print('-----------slope-------------')
+            print(self.slope(ohlc[-20:], ohlc[-20:]['time'], ohlc[-20:]['close']))
 
+
+            print('-----------linear regression-------------')
+            ohlc.ta.ema(close='close', length=10, append=True)
+            ohlc = ohlc.iloc[10:]
+            print(ohlc)
+            X_train, X_test, y_train, y_test = train_test_split(ohlc[['close']], ohlc[['EMA_10']], test_size=.2)
+            print(X_test.describe())
+            print(X_train.describe())
+            model = LinearRegression()
+            # Train the model
+            model.fit(X_train, y_train)
+            # Use model to make predictions
+            y_pred = model.predict(X_test)
+            print("Model Coefficients:", model.coef_)
+            print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
+            print("Coefficient of Determination:", r2_score(y_test, y_pred))
+            print(y_pred)
 
 
 
@@ -68,3 +93,9 @@ class Strategy:
         m2 = (s1 < df[column]) & (s2 < df[column])
         peaks = df[m1 | m2 | s1.isna() | s2.isna()]
         return peaks
+
+    def slope(self, df, x, y):
+        return df.assign(transformx = -np.log10(x),transformy = np.log10(y)) \
+                                   .assign(slope = lambda x: (x.transformy.diff())/(x.transformx.diff()))
+
+

@@ -31,7 +31,6 @@ class Trader:
 
     def go(self):
         if self.trading_enabled:
-            print('----------trading enabled-----------------------------------------------------------------------------')
             self.cancel_expired_order()
             self.save_trades(self.account_data['closed_orders'])
         for pair in alpha["pairs"]:

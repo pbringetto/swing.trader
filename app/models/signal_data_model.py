@@ -44,8 +44,8 @@ class SignalDataModel:
     def save_signal_data(self, pair, price, time_frame, dev, var, rsi, sma3, sma8, sma13, sma3_13_hist, sma8_13_hist, macd, macd_signal, macd_hist):
         signal_data = self.get_signal_data(time_frame, pair)
         if not signal_data:
-            if seconds_since_midnight() <= 300:
-                self.insert_signal_data(pair, price, time_frame, dev, var, rsi, sma3, sma8, sma13, sma3_13_hist, sma8_13_hist, macd, macd_signal, macd_hist)
+            #if seconds_since_midnight() <= 300:
+            self.insert_signal_data(pair, price, time_frame, dev, var, rsi, sma3, sma8, sma13, sma3_13_hist, sma8_13_hist, macd, macd_signal, macd_hist)
         else:
             if (abs((datetime.now() - signal_data[-1]['created_at']).seconds) >= (time_frame * 60)):
                 self.insert_signal_data(pair, price, time_frame, dev, var, rsi, sma3, sma8, sma13, sma3_13_hist, sma8_13_hist, macd, macd_signal, macd_hist)

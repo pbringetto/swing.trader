@@ -3,7 +3,9 @@ mysql-connector
 requests
 python-dotenv
 pandas
+pandas_ta
 cfg_load
 krakenex
 pykrakenapi
 pytest
+scikit-learn
