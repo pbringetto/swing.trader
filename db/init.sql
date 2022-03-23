@@ -62,5 +62,5 @@ CREATE TABLE `settings` (
     primary key (id)
 );
 
-INSERT INTO `settings` (setting, enabled) VALUES ('trading_enabled', 0);
+INSERT INTO `settings` (setting, enabled) VALUES ('trading_enabled', 1);
 INSERT INTO `settings` (setting, enabled) VALUES ('created_at', 1);

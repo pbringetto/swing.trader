@@ -39,7 +39,7 @@ class Strategy:
 
 
             peaks = self.peaks(signal_data_history, 'sma3_13_hist')
-            print('-----------peaks-------------')
+            '''print('-----------peaks-------------')
             print(peaks)
             peaks_low = peaks['sma3_13_hist'].nsmallest(n=5)
             peaks_high = peaks['sma3_13_hist'].nlargest(n=5)
@@ -51,33 +51,30 @@ class Strategy:
             print(peaks_low.mean())
             print('-----------slope-------------')
             print(self.slope(ohlc[-20:], ohlc[-20:]['time'], ohlc[-20:]['close']))
+            '''
 
-
-            print('-----------linear regression-------------')
+            required_features = ['open', 'high', 'low', 'volume', 'EMA_10']
+            output_label = 'close'
             ohlc.ta.ema(close='close', length=10, append=True)
+            ohlc.sort_index(inplace=True)
             ohlc = ohlc.iloc[10:]
-            print(ohlc)
-            X_train, X_test, y_train, y_test = train_test_split(ohlc[['close']], ohlc[['EMA_10']], test_size=.2)
-            print(X_test.describe())
-            print(X_train.describe())
+            X_train, X_test, y_train, y_test = train_test_split(ohlc[required_features], ohlc[output_label], test_size=.2)
             model = LinearRegression()
-            # Train the model
             model.fit(X_train, y_train)
-            # Use model to make predictions
-            y_pred = model.predict(X_test)
-            print("Model Coefficients:", model.coef_)
-            print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
-            print("Coefficient of Determination:", r2_score(y_test, y_pred))
-            print(y_pred)
+            prediction = model.predict([ohlc[required_features].iloc[-2]])
+            score = model.score(X_test, y_test)
 
-
+            print('score')
+            print(score)
+            print('prediction')
+            print(prediction)
 
         #macd_signal = 1 if (data['macd'] > data['macd_signal']) else 0
         rsi_signal = 1 if data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
         sma_hist_buy = data['sma3'] - data['sma13']
         sma_hist_buy_signal = (data['sma3'] - data['sma13']) < -abs(price * time_frame['sma_hist_buy'])
         sma_signal = True if sma_hist_buy_signal else False
-        buy = bool(sma_signal and rsi_signal)
+        buy = bool(rsi_signal)
 
         macd_signal = 1 if (data['macd'] < data['macd_signal']) else 0
         rsi_signal = 1 if data['rsi'] > time_frame['rsi_trigger_range'][1] else 0

@@ -85,7 +85,8 @@ class Trader:
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
         time_frame_data = time_frame_data['ohlc'][::-1]
         now = datetime.now()
-        time_frame_data.loc[now.strftime("%Y-%m-%d, %H:%M:%S")] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
+
+        time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
         return time_frame_data
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame):
@@ -120,11 +121,10 @@ class Trader:
         order_info = self.place_order(time_frame, pair, 'sell', 'open')
 
     def place_order(self, time_frame, pair, type, status):
-        trade = t.TradeDataModel()
         order_response = self.kraken.add_standard_order(pair['pair'], type, 'limit', pair['amount'], self.get_limit(pair, type), None, None, None, 0, 0, time_frame['tf'], False)
         print(order_response)
         for txid in order_response['txid']:
-            trade.save_order(txid, pair['pair'], time_frame['tf'], status, type, pair['amount'], self.get_limit(pair, type))
+            self.trade.save_order(txid, pair['pair'], time_frame['tf'], status, type, pair['amount'], self.get_limit(pair, type))
 
     def get_limit(self, pair, type):
         bid, ask = self.get_bid_ask(pair)
