@@ -15,7 +15,10 @@ class Kraken:
         return self.k.cancel_open_order(txid)
 
     def add_standard_order(self, pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate):
-        return self.k.add_standard_order(pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate)
+        return self.k.add_standard_order(ordertype, type, pair, userref, volume, price, price2, None, leverage, oflags, None, starttm, expiretm, None, None, None, None, validate)
+
+
+
 
     def get_time_frame_data(self, pair, time_frame):
         ohlc, last = self.k.get_ohlc_data(pair, time_frame)
