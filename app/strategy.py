@@ -52,7 +52,7 @@ class Strategy:
             print('-----------slope-------------')
             print(self.slope(ohlc[-20:], ohlc[-20:]['time'], ohlc[-20:]['close']))
             '''
-
+            '''
             required_features = ['open', 'high', 'low', 'volume', 'EMA_10']
             output_label = 'close'
             ohlc.ta.ema(close='close', length=10, append=True)
@@ -68,7 +68,7 @@ class Strategy:
             print(score)
             print('prediction')
             print(prediction)
-
+            '''
         #macd_signal = 1 if (data['macd'] > data['macd_signal']) else 0
         rsi_signal = 1 if data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
         sma_hist_buy = data['sma3'] - data['sma13']

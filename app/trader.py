@@ -45,6 +45,7 @@ class Trader:
         for index, row in self.account_data['open_orders'].iterrows():
             if (int(time.time()) - int(row['opentm'])) > 120:
                 cancel_response = self.kraken.cancel_open_order(index)
+                print(cancel_response)
                 self.trade.close_order(index)
 
     def save_trades(self, closed_orders):
@@ -131,4 +132,4 @@ class Trader:
         return ask if type == 'buy' else bid
 
     def get_bid_ask(self, pair):
-        return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 25, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 25
+        return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 10, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 10
