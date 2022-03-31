@@ -27,17 +27,15 @@ class Strategy:
         self.save_signal_data(data, pair, price, time_frame)
         return data
 
-    def setup(self, ohlc, time_frame, pair):
-        price = float(ohlc['close'][::-1][0])
-        data =  self.get_strategy_data(ohlc, pair['pair'], price, time_frame['tf'])
+    def setup(self, ltf_ohlc, htf_ohlc, time_frame, pair):
+        price = float(ltf_ohlc['close'][::-1][0])
+        ltf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['tf'])
+        htf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['htf_trigger'])
         signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
 
         if len(signal_data_history) >= 1:
             signal_data_history = pd.DataFrame(signal_data_history)
-
             hist_len = 20 if len(signal_data_history) > 20 else 1
-
-
             peaks = self.peaks(signal_data_history, 'sma3_13_hist')
             '''print('-----------peaks-------------')
             print(peaks)
@@ -50,18 +48,18 @@ class Strategy:
             print(peaks_low)
             print(peaks_low.mean())
             print('-----------slope-------------')
-            print(self.slope(ohlc[-20:], ohlc[-20:]['time'], ohlc[-20:]['close']))
+            print(self.slope(ltf_ohlc[-20:], ltf_ohlc[-20:]['time'], ltf_ohlc[-20:]['close']))
             '''
             '''
             required_features = ['open', 'high', 'low', 'volume', 'EMA_10']
             output_label = 'close'
-            ohlc.ta.ema(close='close', length=10, append=True)
-            ohlc.sort_index(inplace=True)
-            ohlc = ohlc.iloc[10:]
-            X_train, X_test, y_train, y_test = train_test_split(ohlc[required_features], ohlc[output_label], test_size=.2)
+            ltf_ohlc.ta.ema(close='close', length=10, append=True)
+            ltf_ohlc.sort_index(inplace=True)
+            ltf_ohlc = ohlc.iloc[10:]
+            X_train, X_test, y_train, y_test = train_test_split(ltf_ohlc[required_features], ltf_ohlc[output_label], test_size=.2)
             model = LinearRegression()
             model.fit(X_train, y_train)
-            prediction = model.predict([ohlc[required_features].iloc[-2]])
+            prediction = model.predict([ltf_ohlc[required_features].iloc[-2]])
             score = model.score(X_test, y_test)
 
             print('score')
@@ -69,19 +67,15 @@ class Strategy:
             print('prediction')
             print(prediction)
             '''
-        #macd_signal = 1 if (data['macd'] > data['macd_signal']) else 0
-        rsi_signal = 1 if data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
-        sma_hist_buy = data['sma3'] - data['sma13']
-        sma_hist_buy_signal = (data['sma3'] - data['sma13']) < -abs(price * time_frame['sma_hist_buy'])
-        sma_signal = True if sma_hist_buy_signal else False
-        buy = bool(rsi_signal)
+        macd_signal = 1 if htf_data['macd'] > 0 else 0
+        rsi_signal = 1 if ltf_data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
+        buy = bool(rsi_signal and macd_signal)
 
-        macd_signal = 1 if (data['macd'] < data['macd_signal']) else 0
-        rsi_signal = 1 if data['rsi'] > time_frame['rsi_trigger_range'][1] else 0
-        sma_signal = True if (data['sma3'] <= data['sma13']) else False
-        sell = bool(rsi_signal)
+        macd_signal = 1 if htf_data['macd'] < 0 else 0
+        rsi_signal = 1 if ltf_data['rsi'] > time_frame['rsi_trigger_range'][1] else 0
+        sell = bool(rsi_signal or macd_signal)
 
-        return buy, sell, data
+        return buy, sell, ltf_data
 
     def peaks(self, df, column):
         s1 = df[column].shift()
