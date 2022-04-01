@@ -24,13 +24,14 @@ class Strategy:
 
     def get_strategy_data(self, close_prices, pair, price, time_frame):
         data = u.convert_dict_str_vals_to_float(self.indicator.get_indicator_data(close_prices))
-        self.save_signal_data(data, pair, price, time_frame)
+        if time_frame:
+            self.save_signal_data(data, pair, price, time_frame)
         return data
 
     def setup(self, ltf_ohlc, htf_ohlc, time_frame, pair):
         price = float(ltf_ohlc['close'][::-1][0])
         ltf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['tf'])
-        htf_data =  self.get_strategy_data(htf_ohlc, pair['pair'], price, time_frame['htf_trigger'])
+        htf_data =  self.get_strategy_data(htf_ohlc, pair['pair'], price, False)
         signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
 
         if len(signal_data_history) >= 1:
