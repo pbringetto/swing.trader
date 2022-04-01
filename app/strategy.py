@@ -30,7 +30,7 @@ class Strategy:
     def setup(self, ltf_ohlc, htf_ohlc, time_frame, pair):
         price = float(ltf_ohlc['close'][::-1][0])
         ltf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['tf'])
-        htf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['htf_trigger'])
+        htf_data =  self.get_strategy_data(htf_ohlc, pair['pair'], price, time_frame['htf_trigger'])
         signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
 
         if len(signal_data_history) >= 1:
@@ -70,7 +70,8 @@ class Strategy:
         macd_signal = 1 if htf_data['macd'] > 0 else 0
         rsi_signal = 1 if ltf_data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
         buy = bool(rsi_signal and macd_signal)
-
+        print(htf_data['macd'])
+        print(ltf_data['rsi'])
         macd_signal = 1 if htf_data['macd'] < 0 else 0
         rsi_signal = 1 if ltf_data['rsi'] > time_frame['rsi_trigger_range'][1] else 0
         sell = bool(rsi_signal or macd_signal)
