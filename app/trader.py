@@ -70,7 +70,7 @@ class Trader:
             if self.trading_enabled:
                 self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
             ltf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
-            htf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
+            htf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['htf_trigger'])
             trade_signal_buy, trade_signal_sell, indicator = self.strategy.setup(ltf_data, htf_data, time_frame, pair)
 
             print('-------------------------------')
