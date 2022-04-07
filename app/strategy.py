@@ -30,54 +30,55 @@ class Strategy:
 
     def setup(self, ltf_ohlc, htf_ohlc, time_frame, pair):
         price = float(ltf_ohlc['close'][::-1][0])
+        market_structure = self.market_structure(htf_ohlc, pair, price)
+        print('---------market_structure-----------')
+        print(market_structure)
         ltf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['tf'])
-        htf_data =  self.get_strategy_data(htf_ohlc, pair['pair'], price, False)
         signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
 
-        if len(signal_data_history) >= 1:
+        if len(signal_data_history) >= 20:
             signal_data_history = pd.DataFrame(signal_data_history)
-            hist_len = 20 if len(signal_data_history) > 20 else 1
-            peaks = self.peaks(signal_data_history, 'sma3_13_hist')
-            '''print('-----------peaks-------------')
-            print(peaks)
-            peaks_low = peaks['sma3_13_hist'].nsmallest(n=5)
-            peaks_high = peaks['sma3_13_hist'].nlargest(n=5)
-            print('-----------peaks_high-------------')
-            print(peaks_high)
-            print(peaks_high.mean())
-            print('-----------peaks_low-------------')
-            print(peaks_low)
-            print(peaks_low.mean())
-            print('-----------slope-------------')
-            print(self.slope(ltf_ohlc[-20:], ltf_ohlc[-20:]['time'], ltf_ohlc[-20:]['close']))
-            '''
-            '''
-            required_features = ['open', 'high', 'low', 'volume', 'EMA_10']
-            output_label = 'close'
-            ltf_ohlc.ta.ema(close='close', length=10, append=True)
-            ltf_ohlc.sort_index(inplace=True)
-            ltf_ohlc = ohlc.iloc[10:]
-            X_train, X_test, y_train, y_test = train_test_split(ltf_ohlc[required_features], ltf_ohlc[output_label], test_size=.2)
-            model = LinearRegression()
-            model.fit(X_train, y_train)
-            prediction = model.predict([ltf_ohlc[required_features].iloc[-2]])
-            score = model.score(X_test, y_test)
+            rsi_low, rsi_high = self.market_range(signal_data_history, 10, 'rsi')
+            print('---------rsi_low-----------')
+            print(rsi_low)
+            print('---------rsi_high-----------')
+            print(rsi_high)
+        else:
+            rsi_low = time_frame['rsi_trigger_range'][0]
+            rsi_high = time_frame['rsi_trigger_range'][1]
 
-            print('score')
-            print(score)
-            print('prediction')
-            print(prediction)
-            '''
-        macd_signal = 1 if htf_data['macd'] > 0 else 0
-        rsi_signal = 1 if ltf_data['rsi'] <= time_frame['rsi_trigger_range'][0] else 0
-        buy = bool(rsi_signal and macd_signal)
-        print(htf_data['macd'])
-        print(ltf_data['rsi'])
-        macd_signal = 1 if htf_data['macd'] < 0 else 0
-        rsi_signal = 1 if ltf_data['rsi'] > time_frame['rsi_trigger_range'][1] else 0
-        sell = bool(rsi_signal or macd_signal)
+        rsi_signal = 1 if ltf_data['rsi'] <= rsi_low else 0
+        buy = bool(rsi_signal and (market_structure == 'bull'))
+
+        rsi_signal = 1 if ltf_data['rsi'] > rsi_high else 0
+        sell = bool(rsi_signal or (market_structure == 'bear') )
 
         return buy, sell, ltf_data
+
+    def market_structure(self, htf_ohlc, pair, price):
+        htf_data =  self.get_strategy_data(htf_ohlc, pair['pair'], price, False)
+        return 'bull' if (htf_data['macd'] > 0) or (htf_data['macd'] > htf_data['macd_signal']) else 'bear'
+
+    def predict(self, df, required_features, output_label):
+        df.sort_index(inplace=True)
+        X_train, X_test, y_train, y_test = train_test_split(df[required_features], df[output_label], test_size=.2)
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+        prediction = model.predict([df[required_features].iloc[-1]])
+        score = model.score(X_test, y_test)
+        return prediction, score
+
+    def market_range(self, df, n, column):
+        peaks = self.peaks(df, column)
+        return self.low_peak(peaks, n, column), self.high_peak(peaks, n, column)
+
+    def high_peak(self, df, n, column):
+        high_peaks = df.nlargest(n, column, keep='all')
+        return high_peaks[column].mean()
+
+    def low_peak(self, df, n, column):
+        low_peaks = df.nsmallest(n, column, keep='all')
+        return low_peaks[column].mean()
 
     def peaks(self, df, column):
         s1 = df[column].shift()

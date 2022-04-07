@@ -22,7 +22,10 @@ def get_positions() -> List[Dict]:
     }
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM `position`')
+    cursor.execute("""SELECT p.txid, p.type, p.closed_at, o.pair FROM  `position` p
+                    INNER JOIN `trade` t ON p.txid = t.txid
+                    INNER JOIN `order` o ON p.txid = o.txid
+                    GROUP BY t.txid""")
     columns = cursor.description
     results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
     cursor.close()
@@ -56,7 +59,7 @@ def get_trades() -> List[Dict]:
     }
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM `trade`')
+    cursor.execute('SELECT * FROM `trade` ORDER by closed_at DESC')
     columns = cursor.description
     results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
     cursor.close()

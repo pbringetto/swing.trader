@@ -116,9 +116,8 @@ class TradeDataModel:
         return [] if len(results) == 0 else results[0]
 
     def close_order(self, txid):
-        print('close_order')
         order = self.get_order(txid)
-        if order['closed_at'] == None:
+        if order and order['closed_at'] == None:
             self.connection = mysql.connector.connect(**self.db_config)
             cursor = self.connection.cursor()
             sql = "UPDATE `order` SET closed_at = %s, status = %s WHERE txid = %s"

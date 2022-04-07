@@ -99,7 +99,7 @@ class Trader:
     def trigger_orders(self, buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair):
         if buy and not has_open_time_frame_order and not has_open_time_frame_position:
             self.buy_trigger(time_frame, pair)
-        price_limit_sell = self.strategy.sell_price_targets(float(self.trade_data['price']), float(time_frame['sma_hist_buy']), float(time_frame['sma_hist_sell']), float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0])) if self.trade_data else False
+        #price_limit_sell = self.strategy.sell_price_targets(float(self.trade_data['price']), float(time_frame['sma_hist_buy']), float(time_frame['sma_hist_sell']), float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0])) if self.trade_data else False
         if (sell and has_open_time_frame_position and not has_open_time_frame_order):
             self.sell_trigger(time_frame, pair)
 
