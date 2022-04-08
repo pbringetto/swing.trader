@@ -1,1 +1,1 @@
-# pegasis
+# Pegasus
