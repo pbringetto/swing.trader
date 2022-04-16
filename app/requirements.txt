@@ -8,4 +8,4 @@ cfg_load
 krakenex
 pykrakenapi
 pytest
-scikit-learn
+scipy

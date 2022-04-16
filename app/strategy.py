@@ -2,71 +2,59 @@ import app.packages.indicator as i
 import app.helpers.util as u
 import app.models.signal_data_model as s
 import pandas as pd
-import pandas_ta
+import pandas_ta as ta
 import numpy as np
 import cfg_load
-import sklearn
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from scipy.stats import linregress
+
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
+
+pd.set_option('display.max_rows', 2000)
+pd.set_option('display.max_columns', 1000)
+pd.set_option('display.width', 1000)
 
 class Strategy:
     def __init__(self):
         self.indicator = i.Indicator()
         self.signal_data = s.SignalDataModel()
 
-    def sell_price_targets(self, buy_price, profit_target, loss_target, bid_price):
-        return bool(((buy_price + (profit_target * buy_price)) <= bid_price) or ((buy_price + (loss_target * buy_price)) >= bid_price))
+    def save_market_state(self, pair, price, time_frame, type):
+        market_state = self.signal_data.get_market_state(time_frame, pair)
+        print(market_state)
+        if not market_state or (type != 0 and market_state != type):
+            self.signal_data.insert_market_state(pair, price, time_frame, type)
 
-    def save_signal_data(self, data, pair, price, time_frame):
-        self.signal_data.save_signal_data(pair, price, time_frame, data['dev'], data['var'], data['rsi'], data['sma3'], data['sma8'], data['sma13'], data['sma3_13_hist'], data['sma8_13_hist'], data['macd'], data['macd_signal'], data['macd_hist'])
+    def setup(self, ohlc, time_frame, pair):
+        price = float(ohlc['close'][::-1][0])
+        buy = 0
+        sell = 0
+        state, last_market_state = self.last_market_state(ohlc, time_frame['tf'], pair['pair'])
+        if state != 'swinging' and last_market_state['type'] != state:
+            self.save_market_state(pair, price, time_frame, state)
+        if time_frame['type'] == "macd_slope":
+           buy, sell = self.macd_slope_strategy(ohlc, last_market_state)
+        return buy, sell
 
-    def get_strategy_data(self, close_prices, pair, price, time_frame):
-        data = u.convert_dict_str_vals_to_float(self.indicator.get_indicator_data(close_prices))
-        if time_frame:
-            self.save_signal_data(data, pair, price, time_frame)
-        return data
+    def last_market_state(self, ohlc, time_frame, pair):
+        rsi = self.indicator.get_rsi(ohlc['close'][-42:], 14),
+        print(rsi[0].iloc[-1])
+        state = 'oversold' if (rsi[0].iloc[-1] <= 30) else 'overbought' if (rsi[0].iloc[-1] >= 70) else 'swinging'
+        print(state)
 
-    def setup(self, ltf_ohlc, htf_ohlc, time_frame, pair):
-        price = float(ltf_ohlc['close'][::-1][0])
-        market_structure = self.market_structure(htf_ohlc, pair, price)
-        print('---------market_structure-----------')
-        print(market_structure)
-        ltf_data =  self.get_strategy_data(ltf_ohlc, pair['pair'], price, time_frame['tf'])
-        signal_data_history = self.signal_data.get_signal_data(time_frame['tf'], pair['pair'])
+        last_market_state = self.signal_data.get_market_state(time_frame, pair)
+        print(last_market_state['type'])
+        print(last_market_state)
+        return state, last_market_state['type']
 
-        if len(signal_data_history) >= 20:
-            signal_data_history = pd.DataFrame(signal_data_history)
-            rsi_low, rsi_high = self.market_range(signal_data_history, 10, 'rsi')
-            print('---------rsi_low-----------')
-            print(rsi_low)
-            print('---------rsi_high-----------')
-            print(rsi_high)
-        else:
-            rsi_low = time_frame['rsi_trigger_range'][0]
-            rsi_high = time_frame['rsi_trigger_range'][1]
-
-        rsi_signal = 1 if ltf_data['rsi'] <= rsi_low else 0
-        buy = bool(rsi_signal and (market_structure == 'bull'))
-
-        rsi_signal = 1 if ltf_data['rsi'] > rsi_high else 0
-        sell = bool(rsi_signal or (market_structure == 'bear') )
-
-        return buy, sell, ltf_data
-
-    def market_structure(self, htf_ohlc, pair, price):
-        htf_data =  self.get_strategy_data(htf_ohlc, pair['pair'], price, False)
-        return 'bull' if (htf_data['macd'] > 0) or (htf_data['macd'] > htf_data['macd_signal']) else 'bear'
-
-    def predict(self, df, required_features, output_label):
-        df.sort_index(inplace=True)
-        X_train, X_test, y_train, y_test = train_test_split(df[required_features], df[output_label], test_size=.2)
-        model = LinearRegression()
-        model.fit(X_train, y_train)
-        prediction = model.predict([df[required_features].iloc[-1]])
-        score = model.score(X_test, y_test)
-        return prediction, score
+    def macd_slope_strategy(self, ohlc, last_market_state):
+        macd = ohlc.ta.macd(close='close', fast=12, slow=26, signal=9, append=True)
+        macd['macd_slope'] = macd['MACD_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
+        macd['macd_sig_slope'] = macd['MACDs_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
+        macd['macd_hist_slope'] = macd['MACDh_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
+        print(macd.iloc[-1])
+        buy = 1 if (macd['macd_slope'].iloc[-1] >= -130) and (last_market_state == 'oversold') else 0
+        sell = 1 if (macd['macd_slope'].iloc[-1] <= -170) else 0
+        return buy, sell
 
     def market_range(self, df, n, column):
         peaks = self.peaks(df, column)
@@ -88,8 +76,9 @@ class Strategy:
         peaks = df[m1 | m2 | s1.isna() | s2.isna()]
         return peaks
 
-    def slope(self, df, x, y):
-        return df.assign(transformx = -np.log10(x),transformy = np.log10(y)) \
-                                   .assign(slope = lambda x: (x.transformy.diff())/(x.transformx.diff()))
-
+    def get_slope(self, array):
+        y = np.array(array)
+        x = np.arange(len(y))
+        slope, intercept, r_value, p_value, std_err = linregress(x,y)
+        return slope
 

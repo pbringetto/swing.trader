@@ -55,10 +55,10 @@ class Indicator:
     def get_macd(self, price, slow, fast, smooth):
         fastEma = price.ewm(span = fast, adjust = False).mean()
         slowEma = price.ewm(span = slow, adjust = False).mean()
-        macd = pd.DataFrame(fastEma - slowEma).rename(columns = {'close':'macd'})
-        signal = pd.DataFrame(macd.ewm(span = smooth, adjust = False).mean()).rename(columns = {'macd':'signal'})
-        hist = pd.DataFrame(macd['macd'] - signal['signal']).rename(columns = {0:'hist'})
-        return [macd['macd'].iloc[-1], signal['signal'].iloc[-1], hist['hist'].iloc[-1]]
+        macd['macd'] = pd.DataFrame(fastEma - slowEma)
+        macd['signal'] = pd.DataFrame(macd.ewm(span = smooth, adjust = False).mean())
+        macd['hist'] = pd.DataFrame(macd['macd'] - signal['signal'])
+        return macd
 
     def get_rsi(self, df, periods = 14, ema = True):
         close_delta = df.diff()

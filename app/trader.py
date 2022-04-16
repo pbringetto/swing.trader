@@ -33,6 +33,7 @@ class Trader:
         if self.trading_enabled:
             self.cancel_expired_order()
             self.save_trades(self.account_data['closed_orders'])
+            print()
         for pair in alpha["pairs"]:
             self.pair_data = self.kraken.get_pair_data(pair['pair'])
             self.time_frame_signals(pair, alpha["time_frames"])
@@ -70,13 +71,12 @@ class Trader:
             if self.trading_enabled:
                 self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
             ltf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
-            htf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['htf_trigger'])
-            trade_signal_buy, trade_signal_sell, indicator = self.strategy.setup(ltf_data, htf_data, time_frame, pair)
+            trade_signal_buy, trade_signal_sell = self.strategy.setup(ltf_data, time_frame, pair)
 
             print('-------------------------------')
             print(time_frame['tf'])
             print("trade_signal_buy: " + str(trade_signal_buy) + " | " + "trade_signal_sell: " + str(trade_signal_sell))
-            print(indicator)
+
 
             if self.trading_enabled:
                 buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame['tf'])
@@ -99,7 +99,6 @@ class Trader:
     def trigger_orders(self, buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair):
         if buy and not has_open_time_frame_order and not has_open_time_frame_position:
             self.buy_trigger(time_frame, pair)
-        #price_limit_sell = self.strategy.sell_price_targets(float(self.trade_data['price']), float(time_frame['sma_hist_buy']), float(time_frame['sma_hist_sell']), float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0])) if self.trade_data else False
         if (sell and has_open_time_frame_position and not has_open_time_frame_order):
             self.sell_trigger(time_frame, pair)
 
