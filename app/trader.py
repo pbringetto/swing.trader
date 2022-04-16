@@ -3,7 +3,6 @@ import cfg_load
 import app.models.trade_model as tm
 import app.models.settings_model as sm
 import app.strategy as s
-import app.orderbook as o
 import app.helpers.util as u
 import app.api.kraken as k
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
@@ -21,7 +20,6 @@ class Trader:
         self.trading_enabled = self.settings.trading_enabled()
         self.created_at = self.settings.created_at()
         self.kraken = k.Kraken()
-        self.orderbook = o.Orderbook()
         self.account_data = self.kraken.get_account_data()
         self.pair_data = {}
         self.trade_data = {}
@@ -73,7 +71,7 @@ class Trader:
             ltf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
             trade_signal_buy, trade_signal_sell = self.strategy.setup(ltf_data, time_frame, pair)
 
-            print('-------------------------------')
+            print('-----------------timeframe_signal_results-------------------')
             print(time_frame['tf'])
             print("trade_signal_buy: " + str(trade_signal_buy) + " | " + "trade_signal_sell: " + str(trade_signal_sell))
 

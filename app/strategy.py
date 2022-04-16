@@ -39,11 +39,12 @@ class Strategy:
         rsi = self.indicator.get_rsi(ohlc['close'][-42:], 14),
         print(rsi[0].iloc[-1])
         state = 'oversold' if (rsi[0].iloc[-1] <= 30) else 'overbought' if (rsi[0].iloc[-1] >= 70) else 'swinging'
+        print('-----------------current_market_type------------------')
         print(state)
 
         last_market_state = self.signal_data.get_market_state(time_frame, pair)
+        print('-----------------last_market_type-------------------')
         print(last_market_state['type'])
-        print(last_market_state)
         return state, last_market_state['type']
 
     def macd_slope_strategy(self, ohlc, last_market_state):
@@ -51,6 +52,7 @@ class Strategy:
         macd['macd_slope'] = macd['MACD_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
         macd['macd_sig_slope'] = macd['MACDs_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
         macd['macd_hist_slope'] = macd['MACDh_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
+        print('-----------------strategy_data-------------------')
         print(macd.iloc[-1])
         buy = 1 if (macd['macd_slope'].iloc[-1] >= -130) and (last_market_state == 'oversold') else 0
         sell = 1 if (macd['macd_slope'].iloc[-1] <= -170) else 0
