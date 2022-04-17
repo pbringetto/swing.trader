@@ -5,9 +5,11 @@ from dotenv import load_dotenv
 import mysql.connector
 from datetime import datetime
 now = datetime.now()
+import app.models.model as m
 
 class TradeDataModel:
     def __init__(self):
+        self.model = m.Model()
         load_dotenv()
         self.db_config = {
             'user': os.getenv('DB_USER'),
@@ -174,6 +176,7 @@ class TradeDataModel:
         self.connection.close()
         return [] if len(results) == 0 else results[0]
 
+    '''
     def get_settings(self):
         self.connection = mysql.connector.connect(**self.db_config)
         cursor = self.connection.cursor()
@@ -183,8 +186,14 @@ class TradeDataModel:
         cursor.close()
         self.connection.close()
         return [] if len(results) == 0 else results[0]
+    '''
 
-
+    def open_positions(self):
+        sql = """SELECT * FROM  `position`
+                         INNER JOIN `trade` ON `position`.txid = trade.txid
+                         INNER JOIN `order` ON `position`.txid = order.txid
+                         AND position.closed_at IS NULL"""
+        return self.model.select_all(sql, ())
 
     def insert(self, sql, params):
         self.connection = mysql.connector.connect(**self.db_config)
