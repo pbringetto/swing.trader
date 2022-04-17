@@ -16,3 +16,11 @@ def is_float(v) -> bool:
         return True
     except ValueError:
         return False
+
+def show(label, value):
+    print(label + ': ' + str(value))
+
+def show_object(label, object):
+    print(label + '-------------------------------------------')
+    print(object)
+    print('---------------------------------------------------')

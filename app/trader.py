@@ -31,10 +31,9 @@ class Trader:
 
 
     def go(self):
-        print('-----------------account_balance-------------------')
-        print(self.account_data['account_balance'])
-        print('-----------------trading_enabled-------------------')
-        print(self.trading_enabled)
+        print(datetime.now())
+        u.show('trading_enabled', self.trading_enabled)
+        u.show_object('account_balance', self.account_data['account_balance'])
 
         if self.trading_enabled:
             self.cancel_expired_order()
@@ -80,9 +79,9 @@ class Trader:
 
             trade_signal_buy, trade_signal_sell = self.strategy.setup(ltf_data, time_frame, pair)
 
-            print('-----------------timeframe_signal_results-------------------')
-            print(time_frame['tf'])
-            print("trade_signal_buy: " + str(trade_signal_buy) + " | " + "trade_signal_sell: " + str(trade_signal_sell))
+            u.show('timeframe signal results', time_frame['text'])
+            u.show('trade signal buy', trade_signal_buy)
+            u.show('trade signal sell', trade_signal_sell)
 
             if self.trading_enabled:
                 buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame['tf'])
@@ -90,7 +89,7 @@ class Trader:
                 self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
 
             self.status.show()
-            
+
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
         time_frame_data = time_frame_data['ohlc'][::-1]
@@ -98,8 +97,8 @@ class Trader:
 
         time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
         self.status.price = float(time_frame_data['close'][::-1][0])
-        print('-----------------price-------------------')
-        print(self.status.price)
+
+        u.show('price', self.status.price)
         return time_frame_data
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame):

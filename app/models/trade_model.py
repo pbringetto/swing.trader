@@ -19,33 +19,13 @@ class TradeDataModel:
             'database': os.getenv('DB_DATABASE'),
         }
 
-    def select_one(self, sql, params):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        cursor.execute(sql, params)
-        columns = cursor.description
-        result = cursor.fetchone()
-        cursor.close()
-        self.connection.close()
-        return result
-
-    def select_all(self, sql, params):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        cursor.execute(sql, params)
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        return [] if len(results) == 0 else results
-
     def get_initial_position_order_by_timeframe(self, time_frame, type):
         sql = """SELECT * FROM `order`
                  WHERE time_frame = %s
                  AND type = %s
                  ORDER BY created_at DESC
                  LIMIT 1"""
-        return self.select_all(sql, (time_frame, type, ))
+        return self.model.select_all(sql, (time_frame, type, ))
 
     def get_orders(self, pair = None, time_frame = None, status = None):
         if pair and time_frame and status:
@@ -54,12 +34,12 @@ class TradeDataModel:
         else:
             sql = 'SELECT * FROM `order`'
             params = None
-        return self.select_all(sql, params)
+        return self.model.select_all(sql, params)
 
     def get_position_by_closing_txid(self, closing_txid):
         sql = """SELECT * FROM  `position` WHERE closing_txid = %s AND closed_at IS NOT NULL """
         params = (closing_txid, )
-        return self.select_one(sql, params)
+        return self.model.select_one(sql, params)
 
     def save_order(self, txid, pair, time_frame, status, type, volume, price):
         self.connection = mysql.connector.connect(**self.db_config)
@@ -104,18 +84,11 @@ class TradeDataModel:
         return [] if len(results) == 0 else results[0]
 
     def get_trades(self, pair, timeframe, status = None):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
         sql = """SELECT * FROM trade
                  INNER JOIN `order` ON `order`.txid = trade.txid
                  AND trade.pair = %s AND `order`.time_frame = %s """
         sql = (sql + ' AND trade.closed_at IS NULL') if status == "open" else sql
-        cursor.execute(sql, (pair, timeframe, ))
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        return [] if len(results) == 0 else results[0]
+        return self.model.select_all(sql, (pair, timeframe, ))
 
     def close_order(self, txid):
         order = self.get_order(txid)
@@ -161,32 +134,13 @@ class TradeDataModel:
         return [] if len(results) == 0 else results[0]
 
     def get_positions(self, pair, timeframe, status = None):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
         sql = """SELECT * FROM  `position`
                  INNER JOIN `trade` ON `position`.txid = trade.txid
                  INNER JOIN `order` ON `position`.txid = order.txid
                  AND trade.pair = %s
                  AND `order`.time_frame = %s """
         sql = (sql + ' AND position.closed_at IS NULL') if status == "open" else sql
-        cursor.execute(sql, (pair, timeframe, ))
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        return [] if len(results) == 0 else results[0]
-
-    '''
-    def get_settings(self):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        cursor.execute('SELECT * FROM `settings`')
-        columns = cursor.description
-        results = [{columns[index][0]:column for index, column in enumerate(value)} for value in cursor.fetchall()]
-        cursor.close()
-        self.connection.close()
-        return [] if len(results) == 0 else results[0]
-    '''
+        return self.model.select_all(sql, (pair, timeframe, ))
 
     def open_positions(self):
         sql = """SELECT * FROM  `position`
@@ -194,19 +148,3 @@ class TradeDataModel:
                          INNER JOIN `order` ON `position`.txid = order.txid
                          AND position.closed_at IS NULL"""
         return self.model.select_all(sql, ())
-
-    def insert(self, sql, params):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        cursor.execute(sql, params)
-        self.connection.commit()
-        cursor.close()
-        self.connection.close()
-
-    def update(self, sql, params):
-        self.connection = mysql.connector.connect(**self.db_config)
-        cursor = self.connection.cursor()
-        cursor.execute(sql, params)
-        self.connection.commit()
-        cursor.close()
-        self.connection.close()
