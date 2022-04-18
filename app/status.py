@@ -25,7 +25,7 @@ class Status:
         return orders
 
     def trades(self, pair, time_frame):
-        print('-----------------orders-------------------')
+        print('-----------------trades-------------------')
         trades = self.trade.get_trades(pair['pair'], time_frame['tf'])
         print(trades)
         return trades
