@@ -28,7 +28,7 @@ class Strategy:
         price = float(ohlc['close'][::-1][0])
         buy = 0
         sell = 0
-        state, last_market_state = self.last_market_state(ohlc, time_frame['tf'], pair['pair'])
+        state, last_market_state = self.last_market_state(ohlc, time_frame, pair['pair'])
         if state != 'swinging' and last_market_state['type'] != state:
             self.save_market_state(pair, price, time_frame, state)
         if time_frame['type'] == "macd_slope":
@@ -36,13 +36,13 @@ class Strategy:
         return buy, sell
 
     def last_market_state(self, ohlc, time_frame, pair):
-        rsi = self.indicator.get_rsi(ohlc['close'][-42:], 14),
+        rsi = self.indicator.get_rsi(ohlc['close'][-42:], 14)
         state = 'oversold' if (rsi[0].iloc[-1] <= time_frame["rsi"][0]) else 'overbought' if (rsi[0].iloc[-1] >= time_frame["rsi"][1]) else 'swinging'
 
         u.show('rsi', rsi[0].iloc[-1])
         u.show('current market type', state)
 
-        last_market_state = self.signal_data.get_market_state(time_frame, pair)
+        last_market_state = self.signal_data.get_market_state(time_frame['tf'], pair)
 
         u.show('last market type', last_market_state['type'])
 
