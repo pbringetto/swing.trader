@@ -15,7 +15,6 @@ import app.status as st
 
 class Trader:
     def __init__(self):
-
         self.status = st.Status()
         self.strategy = s.Strategy()
         self.trade = tm.TradeDataModel()
@@ -88,7 +87,7 @@ class Trader:
                 has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
                 self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
 
-            self.status.show()
+            self.status.show(pair, time_frame)
 
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)

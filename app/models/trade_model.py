@@ -36,6 +36,15 @@ class TradeDataModel:
             params = None
         return self.model.select_all(sql, params)
 
+    def open_orders(self, pair = None, time_frame = None, status = None):
+        if pair and time_frame and status:
+            sql = 'SELECT * FROM `order` WHERE pair = %s AND time_frame = %s AND status = %s'
+            params = (pair, time_frame, status, )
+        else:
+            sql = 'SELECT * FROM `order`'
+            params = None
+        return self.model.select_all(sql, params)
+
     def get_position_by_closing_txid(self, closing_txid):
         sql = """SELECT * FROM  `position` WHERE closing_txid = %s AND closed_at IS NOT NULL """
         params = (closing_txid, )

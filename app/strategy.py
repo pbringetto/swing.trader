@@ -37,6 +37,7 @@ class Strategy:
 
     def last_market_state(self, ohlc, time_frame, pair):
         rsi = self.indicator.get_rsi(ohlc['close'][-42:], 14)
+
         state = 'oversold' if (rsi[-1] <= time_frame["rsi"][0]) else 'overbought' if (rsi[-1] >= time_frame["rsi"][1]) else 'swinging'
 
         u.show('rsi', rsi[-1])

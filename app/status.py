@@ -6,18 +6,29 @@ class Status:
         self.trade = tm.TradeDataModel()
         self.price = 0
 
-    def show(self):
-        self.open_positions()
-        self.open_orders()
-        self.profit_loss()
+    def show(self, pair, time_frame):
+        positions = self.positions(pair, time_frame)
+        orders = self.orders(pair, time_frame)
+        trades = self.orders(pair, time_frame)
+        self.profit_loss(positions, orders)
 
-    def open_positions(self):
-        print('-----------------open_positions-------------------')
-        open_positions = self.trade.open_positions()
-        print(open_positions)
+    def positions(self, pair, time_frame):
+        print('-----------------positions-------------------')
+        positions = self.trade.get_positions(pair['pair'], time_frame['tf'])
+        print(positions)
+        return positions
 
-    def open_orders(self):
-        print('-----------------open_orders-------------------')
+    def orders(self, pair, time_frame):
+        print('-----------------orders-------------------')
+        orders = self.trade.get_orders(pair['pair'], time_frame['tf'])
+        print(orders)
+        return orders
 
-    def profit_loss(self):
+    def trades(self, pair, time_frame):
+        print('-----------------orders-------------------')
+        trades = self.trade.get_trades(pair['pair'], time_frame['tf'])
+        print(trades)
+        return trades
+
+    def profit_loss(self, positions, orders):
         print('-----------------profit_loss-------------------')
