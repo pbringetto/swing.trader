@@ -9,7 +9,7 @@ class Status:
     def show(self, pair, time_frame):
         positions = self.positions(pair, time_frame)
         orders = self.orders(pair, time_frame)
-        trades = self.orders(pair, time_frame)
+        trades = self.trades(pair, time_frame)
         self.profit_loss(positions, orders)
 
     def positions(self, pair, time_frame):
@@ -32,3 +32,7 @@ class Status:
 
     def profit_loss(self, positions, orders):
         print('-----------------profit_loss-------------------')
+        pnl = 0
+        for position in positions:
+            pnl = pnl + ((self.price * position['volume']) - (position['price'] * position['volume']))
+        print(pnl)
