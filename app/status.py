@@ -1,4 +1,3 @@
-
 import app.models.trade_model as tm
 
 class Status:
@@ -33,6 +32,11 @@ class Status:
     def profit_loss(self, positions, orders):
         print('-----------------profit_loss-------------------')
         pnl = 0
+        cost = 0
         for position in positions:
             pnl = pnl + ((self.price * position['volume']) - (position['price'] * position['volume']))
-        print(pnl)
+            cost = cost + (position['price'] * position['volume'])
+        print("${:,.2f}".format(pnl))
+        pnl_perc = (pnl / cost)
+        print("{:.2%}".format(pnl_perc))
+
