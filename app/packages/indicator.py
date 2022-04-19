@@ -60,6 +60,7 @@ class Indicator:
         macd['hist'] = pd.DataFrame(macd['macd'] - signal['signal'])
         return macd
 
+    """
     def get_rsi(self, df, periods = 14, ema = True):
         close_delta = df.diff()
         up = close_delta.clip(lower=0)
@@ -73,6 +74,23 @@ class Indicator:
         rsi = ma_up / ma_down
         rsi = 100 - (100/(1 + rsi))
         return rsi
+    """
+
+    def rsi(self, df):
+        window_length = 14
+        df['diff'] = df['close'].diff(1)
+        df['gain'] = df['diff'].clip(lower=0).round(2)
+        df['loss'] = df['diff'].clip(upper=0).abs().round(2)
+        df['avg_gain'] = df['gain'].rolling(window=window_length, min_periods=window_length).mean()[:window_length+1]
+        df['avg_loss'] = df['loss'].rolling(window=window_length, min_periods=window_length).mean()[:window_length+1]
+        for i, row in enumerate(df['avg_gain'].iloc[window_length+1:]):
+            df['avg_gain'].iloc[i + window_length + 1] = (df['avg_gain'].iloc[i + window_length] * (window_length - 1) + df['gain'].iloc[i + window_length + 1]) / window_length
+        for i, row in enumerate(df['avg_loss'].iloc[window_length+1:]):
+            df['avg_loss'].iloc[i + window_length + 1] = (df['avg_loss'].iloc[i + window_length] * (window_length - 1) + df['loss'].iloc[i + window_length + 1])  / window_length
+        df['rs'] = df['avg_gain'] / df['avg_loss']
+        df['rsi'] = 100 - (100 / (1.0 + df['rs']))
+        df.drop(['diff', 'gain', 'loss', 'avg_gain', 'avg_gain', 'rs'], axis=1, inplace=True)
+        return df
 
     def get_ema(self, df, intervals):
         return df.ewm(span=intervals, adjust=False).mean()
