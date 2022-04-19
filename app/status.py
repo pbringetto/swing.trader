@@ -34,9 +34,12 @@ class Status:
         pnl = 0
         cost = 0
         for position in positions:
-            pnl = pnl + ((self.price * position['volume']) - (position['price'] * position['volume']))
+            pnl = pnl + self.calc_pnl(self.price, position)
             cost = cost + (position['price'] * position['volume'])
         print("${:,.2f}".format(pnl))
         pnl_perc = (pnl / cost)
         print("{:.2%}".format(pnl_perc))
+
+    def calc_pnl(self, price, position):
+        return (((price * position['volume']) - (position['price'] * position['volume'])) - position['fee'])
 
