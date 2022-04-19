@@ -35,7 +35,10 @@ class Strategy:
         if state != 'swinging' and last_market_state['type'] != state:
             self.save_market_state(pair, price, time_frame, state)
         if time_frame['type'] == "macd_slope":
-           buy, sell = self.macd_slope_strategy(ohlc, last_market_state, time_frame)
+           buy, sell, ohlc = self.macd_slope_strategy(ohlc, last_market_state, time_frame)
+
+        u.show_object('strategy data', ohlc.iloc[-1])
+        
         return buy, sell
 
     def last_market_state(self, ohlc, time_frame, pair):
@@ -56,11 +59,9 @@ class Strategy:
         ohlc['macd_sig_slope'] = ohlc['MACDs_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
         ohlc['macd_hist_slope'] = ohlc['MACDh_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
 
-        u.show_object('strategy data', ohlc.iloc[-1])
-
         buy = 1 if (ohlc['macd_slope'].iloc[-1] >= int(time_frame["low"])) and (last_market_state == 'oversold') else 0
         sell = 1 if (ohlc['macd_slope'].iloc[-1] <= int(time_frame["high"])) else 0
-        return buy, sell
+        return buy, sell, ohlc
 
     def market_range(self, df, n, column):
         peaks = self.peaks(df, column)
