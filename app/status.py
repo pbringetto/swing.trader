@@ -19,7 +19,7 @@ class Status:
 
     def orders(self, pair, time_frame):
         print('-----------------orders-------------------')
-        orders = self.trade.get_orders(pair['pair'], time_frame['tf'])
+        orders = self.trade.get_orders(pair['pair'], time_frame['tf'], 'open')
         print(orders)
         return orders
 
