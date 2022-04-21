@@ -44,7 +44,6 @@ class Strategy:
     def last_market_state(self, ohlc, time_frame, pair):
         state = 'oversold' if (ohlc['rsi'][-1] <= time_frame["rsi"][0]) else 'overbought' if (ohlc['rsi'][-1] >= time_frame["rsi"][1]) else 'swinging'
 
-        u.show('rsi', ohlc['rsi'][-1])
         u.show('current market type', state)
 
         last_market_state = self.signal_data.get_market_state(time_frame['tf'], pair)
@@ -59,8 +58,8 @@ class Strategy:
         ohlc['macd_sig_slope'] = ohlc['MACDs_12_26_9'].rolling(window=time_frame["macds_window"]).apply(self.get_slope, raw=True)
         ohlc['macd_hist_slope'] = ohlc['MACDh_12_26_9'].rolling(window=time_frame["macdh_window"]).apply(self.get_slope, raw=True)
 
-        buy = 1 if (ohlc['macd_slope'].iloc[-1] >= int(time_frame["low"])) and (last_market_state == 'oversold') else 0
-        sell = 1 if (ohlc['macd_slope'].iloc[-1] <= int(time_frame["high"])) else 0
+        buy = 1 if (ohlc['macd_slope'].iloc[-1] >= int(time_frame["up"])) and (last_market_state == 'oversold') else 0
+        sell = 1 if (ohlc['macd_slope'].iloc[-1] <= int(time_frame["down"])) else 0
         return buy, sell, ohlc
 
     def market_range(self, df, n, column):

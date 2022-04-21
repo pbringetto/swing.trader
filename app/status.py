@@ -14,7 +14,9 @@ class Status:
     def positions(self, pair, time_frame):
         print('-----------------positions-------------------')
         positions = self.trade.get_positions(pair['pair'], time_frame['tf'])
-        print(positions)
+        if positions:
+            for position in positions:
+                print('txid: ' + position['txid'] + ' closing_txid: ' + position['closing_txid'] + ' price: ' + position['price'] + ' fee: ' + position['fee'] + ' created_at: ' + position['created_at'] + ' time_frame: ' + position['time_frame'] + ' pair: ' + position['pair'])
         return positions
 
     def orders(self, pair, time_frame):
@@ -24,9 +26,12 @@ class Status:
         return orders
 
     def trades(self, pair, time_frame):
-        print('-----------------trades-------------------')
+
         trades = self.trade.get_trades(pair['pair'], time_frame['tf'])
-        print(trades)
+        if trades:
+        print('-----------------trades-------------------')
+            for trade in trades:
+                print('txid: ' + trade['txid'] + ' created_at: ' + trade['created_at'] + ' price: ' + trade['price'] + ' fee: ' + trade['fee'] + ' closed_at: ' + trade['closed_at'] + ' time_frame: ' + trade['time_frame'] + ' pair: ' + trade['pair'])
         return trades
 
     def profit_loss(self, positions, orders):
