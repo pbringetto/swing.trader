@@ -55,9 +55,9 @@ class Strategy:
 
     def macd_slope_strategy(self, ohlc, last_market_state, time_frame):
         ohlc.ta.macd(close='close', fast=12, slow=26, signal=9, append=True)
-        ohlc['macd_slope'] = ohlc['MACD_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
-        ohlc['macd_sig_slope'] = ohlc['MACDs_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
-        ohlc['macd_hist_slope'] = ohlc['MACDh_12_26_9'].rolling(window=2).apply(self.get_slope, raw=True)
+        ohlc['macd_slope'] = ohlc['MACD_12_26_9'].rolling(window=time_frame["macd_window"]).apply(self.get_slope, raw=True)
+        ohlc['macd_sig_slope'] = ohlc['MACDs_12_26_9'].rolling(window=time_frame["macds_window"]).apply(self.get_slope, raw=True)
+        ohlc['macd_hist_slope'] = ohlc['MACDh_12_26_9'].rolling(window=time_frame["macdh_window"]).apply(self.get_slope, raw=True)
 
         buy = 1 if (ohlc['macd_slope'].iloc[-1] >= int(time_frame["low"])) and (last_market_state == 'oversold') else 0
         sell = 1 if (ohlc['macd_slope'].iloc[-1] <= int(time_frame["high"])) else 0
