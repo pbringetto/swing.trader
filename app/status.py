@@ -51,6 +51,7 @@ class Status:
 
     def realized(self):
         pnl = 0
+        cost = 0
         positions = self.trade.closed_positions()
         if positions:
             print('-----------------realized profit loss-------------------')
@@ -62,7 +63,10 @@ class Status:
                 closing_trade = self.trade.get_trade(position['closing_txid'])
                 #print(closing_trade)
                 pnl = pnl + ((closing_trade['price'] + closing_trade['fee']) * position['volume']) - ((opening_trade['price'] + opening_trade['fee']) * position['volume'])
-        print(pnl)
+                cost = cost + ((opening_trade['price'] + opening_trade['fee']) * position['volume'])
+        print("${:,.2f}".format(pnl))
+        pnl_perc = (pnl / cost)
+        print("{:.2%}".format(pnl_perc))
 
 
 
