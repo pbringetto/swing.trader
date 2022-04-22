@@ -12,7 +12,7 @@ class Status:
         self.profit_loss(positions, orders)
 
     def positions(self, pair, time_frame):
-        positions = self.trade.get_positions(pair['pair'], time_frame['tf'])
+        positions = self.trade.get_positions(pair['pair'], time_frame['tf'], 'open')
         if positions:
             print('-----------------positions-------------------')
             for position in positions:
@@ -26,7 +26,6 @@ class Status:
         return orders
 
     def trades(self, pair, time_frame):
-
         trades = self.trade.get_trades(pair['pair'], time_frame['tf'])
         if trades:
             print('-----------------trades-------------------')
