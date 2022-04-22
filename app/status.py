@@ -50,18 +50,19 @@ class Status:
         return (((price * position['volume']) - (position['price'] * position['volume'])) - position['fee'])
 
     def realized(self):
+        pnl = 0
         positions = self.trade.closed_positions()
         if positions:
             print('-----------------realized profit loss-------------------')
             for position in positions:
-                print('-----------------position-------------------')
-                print(position)
+                #print('-----------------position-------------------')
+                #print(position)
                 opening_trade = self.trade.get_trade(position['txid'])
-                print(opening_trade)
+                #print(opening_trade)
                 closing_trade = self.trade.get_trade(position['closing_txid'])
-                print(closing_trade)
-                pnl = ((closing_trade['price'] + closing_trade['fee']) * position['volume']) - ((opening_trade['price'] + opening_trade['fee']) * position['volume'])
-                print(pnl)
+                #print(closing_trade)
+                pnl = pnl + ((closing_trade['price'] + closing_trade['fee']) * position['volume']) - ((opening_trade['price'] + opening_trade['fee']) * position['volume'])
+        print(pnl)
 
 
 
