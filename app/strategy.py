@@ -38,7 +38,9 @@ class Strategy:
            buy, sell, ohlc = self.macd_slope_strategy(ohlc, last_market_state['type'], time_frame)
 
         u.show_object('strategy data', ohlc[['close', 'volume', 'rsi', 'macd_slope', 'macd_sig_slope', 'macd_hist_slope']].iloc[-1])
-        
+
+        u.show_object('strategy data', ohlc[['close', 'volume', 'rsi', 'macd_slope', 'macd_sig_slope', 'macd_hist_slope']])
+
         return buy, sell
 
     def last_market_state(self, ohlc, time_frame, pair):

@@ -16,7 +16,7 @@ class Status:
         if positions:
             print('-----------------positions-------------------')
             for position in positions:
-                print('txid: ' + position['txid'] + ' closing_txid: ' + position['closing_txid'] + ' price: ' + position['price'] + ' fee: ' + position['fee'] + ' created_at: ' + position['created_at'] + ' time_frame: ' + position['time_frame'] + ' pair: ' + position['pair'])
+                print('txid: ' + position['txid'] + ' closing_txid: ' + position['closing_txid'] + ' price: ' + str(position['price']) + ' fee: ' + str(position['fee']) + ' created_at: ' + str(position['created_at']) + ' time_frame: ' + str(position['time_frame']) + ' pair: ' + str(position['pair']))
         return positions
 
     def orders(self, pair, time_frame):
@@ -31,7 +31,7 @@ class Status:
         if trades:
             print('-----------------trades-------------------')
             for trade in trades:
-                print('txid: ' + trade['txid'] + ' created_at: ' + trade['created_at'] + ' price: ' + trade['price'] + ' fee: ' + trade['fee'] + ' closed_at: ' + trade['closed_at'] + ' time_frame: ' + trade['time_frame'] + ' pair: ' + trade['pair'])
+                print('txid: ' + str(trade['txid']) + ' created_at: ' + str(trade['created_at']) + ' price: ' + str(trade['price']) + ' fee: ' + str(trade['fee']) + ' closed_at: ' + str(trade['closed_at']) + ' time_frame: ' + str(trade['time_frame']) + ' pair: ' + str(trade['pair']))
         return trades
 
     def profit_loss(self, positions, orders):
