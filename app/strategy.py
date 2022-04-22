@@ -39,7 +39,7 @@ class Strategy:
 
         u.show_object('strategy data', ohlc[['close', 'volume', 'rsi', 'macd_slope', 'macd_sig_slope', 'macd_hist_slope']].iloc[-1])
 
-        u.show_object('strategy data', ohlc[['close', 'volume', 'rsi', 'macd_slope', 'macd_sig_slope', 'macd_hist_slope']])
+        #u.show_object('strategy data', ohlc[['close', 'volume', 'rsi', 'macd_slope', 'macd_sig_slope', 'macd_hist_slope']])
 
         return buy, sell
 
