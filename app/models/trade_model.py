@@ -157,3 +157,10 @@ class TradeDataModel:
                          INNER JOIN `order` ON `position`.txid = order.txid
                          AND position.closed_at IS NULL"""
         return self.model.select_all(sql, ())
+
+    def closed_positions(self):
+        sql = """SELECT * FROM  `position`
+                         INNER JOIN `trade` ON `position`.txid = trade.txid
+                         INNER JOIN `order` ON `position`.txid = order.txid
+                         AND position.closed_at IS NOT NULL"""
+        return self.model.select_all(sql, ())

@@ -41,6 +41,7 @@ class Trader:
         for pair in alpha["pairs"]:
             self.pair_data = self.kraken.get_pair_data(pair['pair'])
             self.time_frame_signals(pair, alpha["time_frames"])
+        self.status.realized()
 
     def cancel_expired_order(self):
         if self.account_data['open_orders'].empty:
