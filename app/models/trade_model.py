@@ -151,7 +151,7 @@ class TradeDataModel:
                  AND trade.pair = %s
                  AND `order`.time_frame = %s """
         sql = (sql + ' AND position.closed_at IS NULL') if status == "open" else sql
-        sql = sql + ' ORDER BY created_at DESC'
+        sql = sql + ' ORDER BY position.created_at DESC'
         return self.model.select_all(sql, (pair, timeframe, ))
 
     def open_positions(self):
@@ -159,7 +159,7 @@ class TradeDataModel:
                          INNER JOIN `trade` ON `position`.txid = trade.txid
                          INNER JOIN `order` ON `position`.txid = order.txid
                          AND position.closed_at IS NULL"""
-        sql = sql + ' ORDER BY created_at DESC'
+        sql = sql + ' ORDER BY position.created_at DESC'
         return self.model.select_all(sql, ())
 
     def closed_positions(self):
