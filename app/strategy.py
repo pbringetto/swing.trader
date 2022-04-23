@@ -36,7 +36,7 @@ class Strategy:
         if state != 'swinging' and last_market_state['type'] != state:
             self.save_market_state(pair, price, time_frame, state)
 
-        v.show('strategy', time_frame['strategy'])
+        u.show('strategy', time_frame['strategy'])
 
         if time_frame['strategy'] == "macd_slope":
            buy, sell, ohlc = self.macd_slope_strategy(ohlc, last_market_state['type'], time_frame)
