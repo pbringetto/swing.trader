@@ -30,6 +30,7 @@ class Strategy:
         sell = 0
 
         ohlc = self.indicator.rsi(ohlc)
+        htf_ohlc = self.indicator.rsi(htf_ohlc)
         state, last_market_state, ohlc = self.last_market_state(htf_ohlc, time_frame, pair['pair'])
 
         if state != 'swinging' and last_market_state['type'] != state:
