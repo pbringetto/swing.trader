@@ -98,7 +98,7 @@ class TradeDataModel:
                  INNER JOIN `order` ON `order`.txid = trade.txid
                  AND trade.pair = %s AND `order`.time_frame = %s """
         sql = (sql + ' AND trade.closed_at IS NULL') if status == "open" else sql
-        sql = sql + ' ORDER BY created_at DESC'
+        sql = sql + ' ORDER BY `order`.created_at DESC'
         return self.model.select_all(sql, (pair, timeframe, ))
 
     def close_order(self, txid):
