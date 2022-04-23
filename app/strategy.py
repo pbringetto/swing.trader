@@ -24,16 +24,19 @@ class Strategy:
         if not market_state or (type != 0 and market_state != type):
             self.signal_data.insert_market_state(pair, price, time_frame, type)
 
-    def setup(self, ohlc, time_frame, pair):
+    def setup(self, ohlc, htf_ohlc, time_frame, pair):
         price = float(ohlc['close'][::-1][0])
         buy = 0
         sell = 0
 
         ohlc = self.indicator.rsi(ohlc)
-        state, last_market_state, ohlc = self.last_market_state(ohlc, time_frame, pair['pair'])
-        print(last_market_state)
+        state, last_market_state, ohlc = self.last_market_state(htf_ohlc, time_frame, pair['pair'])
+
         if state != 'swinging' and last_market_state['type'] != state:
             self.save_market_state(pair, price, time_frame, state)
+
+        v.show('strategy', time_frame['strategy'])
+
         if time_frame['strategy'] == "macd_slope":
            buy, sell, ohlc = self.macd_slope_strategy(ohlc, last_market_state['type'], time_frame)
 
