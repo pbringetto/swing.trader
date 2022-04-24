@@ -55,12 +55,8 @@ class Status:
         if positions:
             print('-----------------realized profit loss-------------------')
             for position in positions:
-                #print('-----------------position-------------------')
-                #print(position)
                 opening_trade = self.trade.get_trade(position['txid'])
-                #print(opening_trade)
                 closing_trade = self.trade.get_trade(position['closing_txid'])
-                #print(closing_trade)
                 pnl = pnl + ((closing_trade['price'] * position['volume']) - closing_trade['fee']) - ((opening_trade['price'] * position['volume']) - + opening_trade['fee'])
                 cost = cost + ((opening_trade['price'] * position['volume']) + opening_trade['fee'])
         if pnl > 0 and cost > 0:

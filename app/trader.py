@@ -45,29 +45,16 @@ class Trader:
 
     def cancel_expired_order(self):
         open_orders = self.trade.get_orders()
-        print(open_orders)
         if self.account_data['open_orders'].empty:
-            #open_orders = self.trade.get_orders()
             for open_order in open_orders:
                 self.trade.close_order(open_order['txid'])
-        print(self.account_data['open_orders'])
         for index, row in self.account_data['open_orders'].iterrows():
-
             if (int(time.time()) - int(row['opentm'])) > 120:
-
-
-                o = [value for elem in open_orders for value in elem.values()]
-
-                if index in o:
-                    print('yes it exists')
+                search_orders = [value for elem in open_orders for value in elem.values()]
+                if index in search_orders:
                     cancel_response = self.kraken.cancel_open_order(index)
                     print(cancel_response)
                     self.trade.close_order(index)
-                else:
-                    print('no not exists')
-
-
-
 
     def save_trades(self, closed_orders):
         for index, row in closed_orders.iterrows():

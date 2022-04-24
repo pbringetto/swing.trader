@@ -46,9 +46,6 @@ class Strategy:
            buy, sell, ohlc = self.rsi_strategy(ohlc, last_market_state['type'], time_frame)
            u.show_object('strategy data', ohlc[['close', 'volume', 'rsi']].iloc[-1])
 
-
-
-
         return buy, sell
 
     def last_market_state(self, ohlc, time_frame, pair):
@@ -76,8 +73,6 @@ class Strategy:
         buy = 1 if (ohlc['rsi'].iloc[-1] <= int(time_frame["rsi"][0])) and (last_market_state == 'oversold') else 0
         sell = 1 if (ohlc['rsi'].iloc[-1] >= int(time_frame["rsi"][1])) else 0
         return buy, sell, ohlc
-
-
 
     def market_range(self, df, n, column):
         peaks = self.peaks(df, column)
