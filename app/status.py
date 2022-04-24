@@ -63,9 +63,10 @@ class Status:
                 #print(closing_trade)
                 pnl = pnl + ((closing_trade['price'] * position['volume']) - closing_trade['fee']) - ((opening_trade['price'] * position['volume']) - + opening_trade['fee'])
                 cost = cost + ((opening_trade['price'] * position['volume']) + opening_trade['fee'])
-        print("${:,.2f}".format(pnl))
-        pnl_perc = (pnl / cost)
-        print("{:.2%}".format(pnl_perc))
+        if pnl > 0 and cost > 0:
+            print("${:,.2f}".format(pnl))
+            pnl_perc = (pnl / cost)
+            print("{:.2%}".format(pnl_perc))
 
 
 
