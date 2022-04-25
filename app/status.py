@@ -59,7 +59,6 @@ class Status:
                 closing_trade = self.trade.get_trade(position['closing_txid'])
                 pnl = pnl + ((closing_trade['price'] * position['volume']) - closing_trade['fee']) - ((opening_trade['price'] * position['volume']) - + opening_trade['fee'])
                 cost = cost + ((opening_trade['price'] * position['volume']) + opening_trade['fee'])
-        if pnl > 0 and cost > 0:
             print("${:,.2f}".format(pnl))
             pnl_perc = (pnl / cost)
             print("{:.2%}".format(pnl_perc))
