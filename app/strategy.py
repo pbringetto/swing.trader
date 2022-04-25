@@ -31,7 +31,7 @@ class Strategy:
 
         ohlc = self.indicator.rsi(ohlc)
         htf_ohlc = self.indicator.rsi(htf_ohlc)
-        state, last_market_state, ohlc = self.last_market_state(htf_ohlc, time_frame, pair['pair'])
+        state, last_market_state = self.last_market_state(htf_ohlc, time_frame, pair['pair'])
 
         if state != 'swinging' and last_market_state['type'] != state:
             self.save_market_state(pair, price, time_frame, state)
@@ -57,7 +57,7 @@ class Strategy:
 
         u.show('last market type', last_market_state['type'])
 
-        return state, last_market_state, ohlc
+        return state, last_market_state
 
     def macd_slope_strategy(self, ohlc, last_market_state, time_frame):
         ohlc.ta.macd(close='close', fast=12, slow=26, signal=9, append=True)
