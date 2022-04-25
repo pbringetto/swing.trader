@@ -52,6 +52,7 @@ CREATE TABLE `settings` (
     primary key (id)
 );
 
+INSERT INTO `market_state` VALUES (2,'2022-04-21 03:57:03','XBTUSDT',40234,'oversold',15);
 INSERT INTO `market_state` VALUES (1,'2022-04-15 03:57:03','XBTUSDT',39622,'oversold',1440);
 INSERT INTO `settings` (setting, enabled) VALUES ('trading_enabled', 0);
 INSERT INTO `settings` (setting, enabled) VALUES ('created_at', 1);
