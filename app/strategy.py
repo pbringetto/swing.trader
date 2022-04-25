@@ -19,7 +19,7 @@ class Strategy:
         self.signal_data = s.SignalDataModel()
 
     def save_market_state(self, pair, price, time_frame, type):
-        market_state = self.signal_data.get_market_state(time_frame['tf'], pair)
+        market_state = self.signal_data.get_market_state(time_frame, pair)
         print(market_state)
         if not market_state or (type != 0 and market_state != type):
             self.signal_data.insert_market_state(pair, price, time_frame, type)
@@ -34,7 +34,7 @@ class Strategy:
         state, last_market_state = self.last_market_state(htf_ohlc, time_frame, pair['pair'])
 
         if state != 'swinging' and last_market_state['type'] != state:
-            self.save_market_state(pair, price, time_frame, state)
+            self.save_market_state(pair['pair'], price, time_frame['tf'], state)
 
         u.show('strategy', time_frame['strategy'])
 
