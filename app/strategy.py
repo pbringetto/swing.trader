@@ -70,7 +70,7 @@ class Strategy:
         return buy, sell, ohlc
 
     def rsi_strategy(self, ohlc, last_market_state, time_frame):
-        bounce = (ohlc['rsi'].iloc[-1] <= int((time_frame["rsi"][0] - 9))
+        bounce = ohlc['rsi'].iloc[-1] <= int(time_frame["rsi"][0] - 9)
         buy = 1 if bounce or (ohlc['rsi'].iloc[-1] <= int(time_frame["rsi"][0])) and (last_market_state == 'oversold') else 0
         sell = 1 if (ohlc['rsi'].iloc[-1] >= int(time_frame["rsi"][1])) else 0
         return buy, sell, ohlc
