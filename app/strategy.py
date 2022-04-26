@@ -65,8 +65,8 @@ class Strategy:
         ohlc['macd_sig_slope'] = ohlc['MACDs_12_26_9'].rolling(window=time_frame["macds_window"]).apply(self.get_slope, raw=True)
         ohlc['macd_hist_slope'] = ohlc['MACDh_12_26_9'].rolling(window=time_frame["macdh_window"]).apply(self.get_slope, raw=True)
 
-        buy = 1 if (ohlc['macd_slope'].iloc[-1] >= int(time_frame["up"])) and (last_market_state == 'oversold') else 0
-        sell = 1 if (ohlc['macd_slope'].iloc[-1] <= int(time_frame["down"])) else 0
+        buy = 1 if (ohlc['macd_slope'].iloc[-1] >= int(time_frame["up"])) and (last_market_state == 'oversold') and  (ohlc['rsi'].iloc[-1] <= time_frame["strategy_rsi"][0]) else 0
+        sell = 1 if (ohlc['macd_slope'].iloc[-1] <= int(time_frame["down"])) and (ohlc['rsi'].iloc[-1] >= time_frame["strategy_rsi"][1]) else 0
         return buy, sell, ohlc
 
     def rsi_strategy(self, ohlc, last_market_state, time_frame):
