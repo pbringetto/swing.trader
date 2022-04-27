@@ -52,10 +52,10 @@ CREATE TABLE `settings` (
     primary key (id)
 );
 
-INSERT INTO `market_state` VALUES 
+INSERT INTO `market_state` VALUES
 (1,'2022-01-15 03:57:03','XBTUSDT',34622,'oversold',1440),
 (2,'2022-04-21 03:57:03','XBTUSDT',40234,'oversold',15),
 (3,'2022-04-25 23:33:05','XBTUSDT',40520.5,'overbought',15),
 (4,'2022-01-22 23:33:05','XBTUSDT',35522,'oversold',240);
-INSERT INTO `settings` (setting, enabled) VALUES ('trading_enabled', 1);
+INSERT INTO `settings` (setting, enabled) VALUES ('trading_enabled', 0);
 INSERT INTO `settings` (setting, enabled) VALUES ('created_at', 1);

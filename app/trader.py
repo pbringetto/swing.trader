@@ -37,7 +37,6 @@ class Trader:
         if self.trading_enabled:
             self.cancel_expired_order()
             self.save_trades(self.account_data['closed_orders'])
-            print()
         for pair in alpha["pairs"]:
             self.pair_data = self.kraken.get_pair_data(pair['pair'])
             self.time_frame_signals(pair, alpha["time_frames"])
@@ -98,7 +97,15 @@ class Trader:
         time_frame_data = time_frame_data['ohlc'][::-1]
         now = datetime.now()
 
-        time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
+        #create volume function
+        recent_trades = self.pair_data['recent_trades']
+        d = time_frame_data.index[-2]
+        buys = recent_trades[0].query('index >= @d and buy_sell == "buy"' )
+        sells = recent_trades[0].query('index >= @d and buy_sell == "sell"' )
+        volume = buys['volume'].sum() + sells['volume'].sum()
+
+        time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,volume,0]
+
         self.status.price = float(time_frame_data['close'][::-1][0])
 
         u.show('price', self.status.price)

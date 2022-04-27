@@ -10,9 +10,9 @@ class Kraken:
         kex = krakenex.API()
         kex.load_key('/home/user/app/kraken.key')
         self.k = KrakenAPI(kex)
+        self.delay = 2
 
     def cancel_open_order(self, txid):
-        print('cancel')
         return self.k.cancel_open_order(txid)
 
     def add_standard_order(self, pair, type, ordertype, volume, price, price2, leverage, oflags, starttm, expiretm, userref, validate):
@@ -20,7 +20,7 @@ class Kraken:
 
     def get_time_frame_data(self, pair, time_frame):
         ohlc, last = self.k.get_ohlc_data(pair, time_frame)
-        time.sleep(1)
+        time.sleep(self.delay)
         return {
             "ohlc": ohlc,
             "last": last,
@@ -28,11 +28,13 @@ class Kraken:
 
     def get_pair_data(self, pair):
         order_book = self.k.get_order_book(pair, 10, True)
-        time.sleep(1)
+        time.sleep(self.delay)
         trade_volume = self.k.get_trade_volume(pair)
-        time.sleep(1)
+        time.sleep(self.delay)
         ticker_information = self.k.get_ticker_information(pair)
-        time.sleep(1)
+        time.sleep(self.delay)
+        recent_trades = self.k.get_recent_trades(pair, since = None)
+        time.sleep(self.delay)
         return {
             "ask_price": order_book[0]['price'].iloc[0],
             "bid_price": order_book[1]['price'].iloc[0],
@@ -40,6 +42,7 @@ class Kraken:
             "taker_fee": trade_volume[2][pair]['fee'],
             "maker_fee": trade_volume[3][pair]['fee'],
             "ticker_information": ticker_information,
+            "recent_trades": recent_trades,
         }
 
     def account_status(self, account_data, pair, pair_data, bid, ask):
@@ -62,14 +65,14 @@ class Kraken:
     def get_account_data(self):
         account_balance = {}
         open_orders = self.k.get_open_orders()
-        time.sleep(1)
+        time.sleep(self.delay)
         closed_orders = self.k.get_closed_orders()
         closed_orders = closed_orders[0].query('status == "closed"', inplace = False)
         #print(closed_orders)
-        time.sleep(1)
+        time.sleep(self.delay)
         account_balance = self.k.get_account_balance()
         #print(account_balance)
-        time.sleep(1)
+        time.sleep(self.delay)
         return {
             "account_balance": account_balance,
             "open_orders": open_orders,
