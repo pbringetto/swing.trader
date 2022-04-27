@@ -106,6 +106,12 @@ class Trader:
         volume = buys['volume'].sum() + sells['volume'].sum()
 
         time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,volume,0]
+
+        time_frame_data['volume_mean'] = time_frame_data['volume'].rolling(window=20).mean()
+        time_frame_data['volume_std'] = time_frame_data['volume'].rolling(window=20).std()
+
+
+
         self.status.price = float(time_frame_data['close'][::-1][0])
         u.show('price', self.status.price)
 
