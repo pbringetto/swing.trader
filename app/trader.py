@@ -120,7 +120,7 @@ class Trader:
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame):
         bid, ask = self.get_bid_ask(pair)
-        account_status = self.kraken.account_status(self.account_data, pair, self.pair_data, bid, ask)
+        account_status = self.kraken.account_status(self.account_data, pair, self.pair_data, bid, ask, time_frame)
         u.show('have_base_currency_to_buy', account_status['have_base_currency_to_buy'])
         u.show('have_quote_currency_to_sell', account_status['have_quote_currency_to_sell'])
         return (trade_signal_buy and account_status['have_base_currency_to_buy']), (trade_signal_sell and account_status['have_quote_currency_to_sell'])

@@ -45,11 +45,11 @@ class Kraken:
             "recent_trades": recent_trades,
         }
 
-    def account_status(self, account_data, pair, pair_data, bid, ask):
+    def account_status(self, account_data, pair, pair_data, bid, ask, time_frame):
         base_balance = account_data['account_balance'].loc[pair['currency']['base'], 'vol']
         quote_balance = account_data['account_balance'].loc[pair['currency']['quote'], 'vol']
-        buy_volume = pair['amount'] * ask
-        sell_volume = pair['amount']
+        buy_volume = time_frame['size'] * ask
+        sell_volume = time_frame['size']
         return {
             'base_balance': base_balance,
             'quote_balance': quote_balance,
