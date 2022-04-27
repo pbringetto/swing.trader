@@ -96,7 +96,8 @@ class Trader:
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
 
         time_frame_data = time_frame_data['ohlc'][::-1]
-
+        now = datetime.now()
+        #create volume function
         recent_trades = self.pair_data['recent_trades']
         d = time_frame_data.index[-2]
         print(d)
