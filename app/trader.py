@@ -94,21 +94,20 @@ class Trader:
 
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
-        time_frame_data = time_frame_data['ohlc'][::-1]
-        now = datetime.now()
 
-        #create volume function
+        time_frame_data = time_frame_data['ohlc'][::-1]
+
         recent_trades = self.pair_data['recent_trades']
         d = time_frame_data.index[-2]
+        print(d)
         buys = recent_trades[0].query('index >= @d and buy_sell == "buy"' )
         sells = recent_trades[0].query('index >= @d and buy_sell == "sell"' )
         volume = buys['volume'].sum() + sells['volume'].sum()
 
         time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,volume,0]
-
         self.status.price = float(time_frame_data['close'][::-1][0])
-
         u.show('price', self.status.price)
+
         return time_frame_data
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame):
