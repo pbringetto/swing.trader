@@ -109,6 +109,7 @@ class Trader:
 
         time_frame_data['volume_mean'] = time_frame_data['volume'].rolling(window=20).mean()
         time_frame_data['volume_std'] = time_frame_data['volume'].rolling(window=20).std()
+        time_frame_data['volume_var'] = time_frame_data['volume'].rolling(window=20).var()
 
 
 
