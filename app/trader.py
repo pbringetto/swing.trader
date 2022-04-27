@@ -86,7 +86,7 @@ class Trader:
             u.show('trade signal sell', trade_signal_sell)
 
             if self.trading_enabled:
-                buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame['tf'])
+                buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame)
                 has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
                 self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
 
