@@ -6,10 +6,11 @@ class Status:
         self.price = 0
 
     def show(self, pair, time_frame):
-        positions = self.positions(pair, time_frame)
-        orders = self.orders(pair, time_frame)
-        trades = self.trades(pair, time_frame)
-        self.profit_loss(positions, orders)
+        if time_frame['enabled']:
+            positions = self.positions(pair, time_frame)
+            orders = self.orders(pair, time_frame)
+            trades = self.trades(pair, time_frame)
+            self.profit_loss(positions, orders)
 
     def positions(self, pair, time_frame):
         positions = self.trade.get_positions(pair['pair'], time_frame['tf'], 'open')
@@ -20,9 +21,11 @@ class Status:
         return positions
 
     def orders(self, pair, time_frame):
-        print('-----------------orders-------------------')
+
         orders = self.trade.get_orders(pair['pair'], time_frame['tf'], 'open')
-        print(orders)
+        if orders:
+            print('-----------------orders-------------------')
+            print(orders)
         return orders
 
     def trades(self, pair, time_frame):
@@ -30,14 +33,17 @@ class Status:
         if trades:
             print('-----------------trades-------------------')
             for trade in trades:
-                print('txid: ' + str(trade['txid']) + ' created_at: ' + str(trade['created_at']) + ' price: ' + str(trade['price']) + ' fee: ' + str(trade['fee']) + ' closed_at: ' + str(trade['closed_at']) + ' time_frame: ' + str(trade['time_frame']) + ' pair: ' + str(trade['pair']))
+                cost = ((trade['price'] * trade['volume']) + trade['fee'])
+                print('txid: ' + str(trade['txid']) + ' created_at: ' + str(trade['created_at']) + ' price: ' + str(trade['price']) + ' fee: ' + str(trade['fee']) + ' cost: ' + str(cost) + ' closed_at: ' + str(trade['closed_at']) + ' time_frame: ' + str(trade['time_frame']) + ' pair: ' + str(trade['pair']))
         return trades
 
     def profit_loss(self, positions, orders):
-        print('-----------------profit_loss-------------------')
+
         pnl = 0
         cost = 0
+
         if positions:
+            print('-----------------profit_loss-------------------')
             for position in positions:
                 pnl = pnl + self.calc_pnl(self.price, position)
                 cost = cost + (position['price'] * position['volume'])

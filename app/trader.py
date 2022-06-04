@@ -7,6 +7,8 @@ import app.helpers.util as u
 import app.api.kraken as k
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
 import pandas as pd
+import pandas_ta as ta
+
 pd.set_option('display.max_rows', 1000)
 pd.set_option('display.max_columns', 1000)
 pd.set_option('display.width', 1000)
@@ -19,7 +21,7 @@ class Trader:
         self.strategy = s.Strategy()
         self.trade = tm.TradeDataModel()
         self.settings = sm.SettingsModel()
-        self.trading_enabled = self.settings.trading_enabled()
+        self.trading_enabled = True
         self.created_at = self.settings.created_at()
         self.kraken = k.Kraken()
         self.account_data = self.kraken.get_account_data()
@@ -27,7 +29,6 @@ class Trader:
         self.trade_data = {}
         self.order_data = {}
         self.positions_data = {}
-
 
     def go(self):
         print(datetime.now())
@@ -41,6 +42,25 @@ class Trader:
             self.pair_data = self.kraken.get_pair_data(pair['pair'])
             self.time_frame_signals(pair, alpha["time_frames"])
         self.status.realized()
+
+    def time_frame_signals(self, pair, time_frames):
+        for time_frame in time_frames:
+            if time_frame['enabled']:
+                u.show('timeframe', time_frame['text'])
+                if self.trading_enabled:
+                    self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
+                ohlc = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
+                u.show('price', ohlc['close'].iloc[-1])
+                trade_signal_buy, trade_signal_sell = self.strategy.setup(ohlc, time_frame, pair)
+                u.show('trade signal buy', trade_signal_buy)
+                u.show('trade signal sell', trade_signal_sell)
+
+                if self.trading_enabled:
+                    buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame)
+                    has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
+                    self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
+
+            self.status.show(pair, time_frame)
 
     def cancel_expired_order(self):
         open_orders = self.trade.get_orders()
@@ -72,50 +92,11 @@ class Trader:
                         for initial_position_order in initial_position_orders:
                             self.trade.close_position(initial_position_order['txid'], index)
 
-    def time_frame_signals(self, pair, time_frames):
-        for time_frame in time_frames:
-            if self.trading_enabled:
-                self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
-            ltf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])
-            htf_data = self.time_frame_ohlc_data(pair['pair'], time_frame['htf'])
-
-            trade_signal_buy, trade_signal_sell = self.strategy.setup(ltf_data, htf_data, time_frame, pair)
-
-            u.show('timeframe signal results', time_frame['text'])
-            u.show('trade signal buy', trade_signal_buy)
-            u.show('trade signal sell', trade_signal_sell)
-
-            if self.trading_enabled:
-                buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame)
-                has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
-                self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
-
-            self.status.show(pair, time_frame)
-
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
-
         time_frame_data = time_frame_data['ohlc'][::-1]
-        now = datetime.now()
-        #create volume function
-        recent_trades = self.pair_data['recent_trades']
-        d = time_frame_data.index[-2]
-        print(d)
-        buys = recent_trades[0].query('index >= @d and buy_sell == "buy"' )
-        sells = recent_trades[0].query('index >= @d and buy_sell == "sell"' )
-        volume = buys['volume'].sum() + sells['volume'].sum()
-
-        time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,volume,0]
-
-        time_frame_data['volume_mean'] = time_frame_data['volume'].rolling(window=20).mean()
-        time_frame_data['volume_std'] = time_frame_data['volume'].rolling(window=20).std()
-        time_frame_data['volume_var'] = time_frame_data['volume'].rolling(window=20).var()
-
-
-
-        self.status.price = float(time_frame_data['close'][::-1][0])
-        u.show('price', self.status.price)
-
+        index = range(0, len(time_frame_data.index))
+        time_frame_data.index = index
         return time_frame_data
 
     def evaluate_signals(self, pair, trade_signal_buy, trade_signal_sell, time_frame):
