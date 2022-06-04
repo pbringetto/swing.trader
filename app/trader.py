@@ -46,7 +46,7 @@ class Trader:
     def time_frame_signals(self, pair, time_frames):
         for time_frame in time_frames:
             if time_frame['enabled']:
-                u.show('timeframe', time_frame['text'])
+                u.show('timeframe', time_frame['text'], 'above')
                 if self.trading_enabled:
                     self.trade_data = self.trade.get_trades(pair['pair'], time_frame['tf'])
                 ohlc = self.time_frame_ohlc_data(pair['pair'], time_frame['tf'])

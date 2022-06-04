@@ -17,7 +17,9 @@ def is_float(v) -> bool:
     except ValueError:
         return False
 
-def show(label, value):
+def show(label, value, line = None):
+    if line and line == 'above':
+        print('-----------------------------------------------------------------------------------------------------------------')
     print(label + ': ' + str(value))
 
 def show_object(label, object):

@@ -12,9 +12,9 @@ class Strategy:
         signals = []
         for signal in ta_data:
             if signal['value']:
-                print(signal['value'])
                 signals.append(signal['key'])
 
+        print(ohlc.iloc[-1])
         print('---------ta_data--------------------')
         print(signals)
         print('---------strategy_data--------------------')

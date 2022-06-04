@@ -9,5 +9,5 @@ krakenex
 pykrakenapi
 pytest
 scipy
-ta_signals~=0.0.294
+ta_signals~=0.0.298
 pyangles
