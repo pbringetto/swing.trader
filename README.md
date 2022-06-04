@@ -1,1 +1,1 @@
-# Pegasus
+# Swing Trader
