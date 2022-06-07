@@ -95,6 +95,10 @@ class Trader:
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
         time_frame_data = time_frame_data['ohlc'][::-1]
+
+        now = datetime.now()
+        time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
+
         index = range(0, len(time_frame_data.index))
         time_frame_data.index = index
         return time_frame_data
@@ -142,4 +146,4 @@ class Trader:
         return ask if type == 'buy' else bid
 
     def get_bid_ask(self, pair):
-        return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 10, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 10
+        return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 1, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 1

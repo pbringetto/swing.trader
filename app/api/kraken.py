@@ -1,8 +1,8 @@
 import app.api.kraken as k
 import krakenex
 from pykrakenapi import KrakenAPI
-import cfg_load
-alpha = cfg_load.load('/home/user/app/alpha.yaml')
+#import cfg_load
+#alpha = cfg_load.load('/home/user/app/alpha.yaml')
 import time
 
 class Kraken:

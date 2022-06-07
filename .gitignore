@@ -1,0 +1,8 @@
+alpha.yaml
+.env
+backup.sql
+kraken.key
+app/api/__pycache__/
+backtest/__pycache__/
+backtest/kraken.py
+app/__pycache__/
