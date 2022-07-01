@@ -3,6 +3,7 @@ import cfg_load
 import app.models.trade_model as tm
 import app.models.settings_model as sm
 import app.strategy as s
+import twitter as t
 import app.helpers.util as u
 import app.api.kraken as k
 alpha = cfg_load.load('/home/user/app/alpha.yaml')
@@ -55,13 +56,18 @@ class Trader:
                 u.show('trade signal buy', trade_signal_buy)
                 u.show('trade signal sell', trade_signal_sell)
 
+
                 if self.trading_enabled:
+                    self.status.price = ohlc['close'].iloc[-1]
+                    pnl_perc = self.status.show(pair, time_frame)
                     buy, sell = self.evaluate_signals(pair, trade_signal_buy, trade_signal_sell, time_frame)
+                     
+                    
+
                     has_open_time_frame_order, has_open_time_frame_position = self.time_frame_state(pair, time_frame)
                     self.trigger_orders(buy, sell, has_open_time_frame_order, has_open_time_frame_position, time_frame, pair)
-
-            self.status.show(pair, time_frame)
-
+                
+                
     def cancel_expired_order(self):
         open_orders = self.trade.get_orders()
         if self.account_data['open_orders'].empty:
@@ -95,10 +101,8 @@ class Trader:
     def time_frame_ohlc_data(self, pair, time_frame):
         time_frame_data = self.kraken.get_time_frame_data(pair, time_frame)
         time_frame_data = time_frame_data['ohlc'][::-1]
-
         now = datetime.now()
         time_frame_data.loc[pd.to_datetime(now.strftime("%Y-%m-%d %H:%M:%S"))] = [int(time.time()),0,0,0,float(self.pair_data['ticker_information']['a'][0][0]),0,0,0]
-
         index = range(0, len(time_frame_data.index))
         time_frame_data.index = index
         return time_frame_data
@@ -130,7 +134,7 @@ class Trader:
     def buy_trigger(self, time_frame, pair):
         time.sleep(1)
         order_info = self.place_order(time_frame, pair, 'buy', 'open')
-
+        
     def sell_trigger(self, time_frame, pair):
         time.sleep(1)
         order_info = self.place_order(time_frame, pair, 'sell', 'open')
@@ -138,6 +142,7 @@ class Trader:
     def place_order(self, time_frame, pair, type, status):
         order_response = self.kraken.add_standard_order(pair['pair'], type, 'limit', time_frame['size'], self.get_limit(pair, type), None, None, None, 0, 0, time_frame['tf'], False)
         print(order_response)
+        self.post_trade(order_response, pair, time_frame, type)
         for txid in order_response['txid']:
             self.trade.save_order(txid, pair['pair'], time_frame['tf'], status, type, time_frame['size'], self.get_limit(pair, type))
 
@@ -147,3 +152,27 @@ class Trader:
 
     def get_bid_ask(self, pair):
         return float(self.pair_data['ticker_information'].loc[pair['pair'], 'b'][0]) + 1, float(self.pair_data['ticker_information'].loc[pair['pair'], 'a'][0]) - 1
+
+
+    def tweet(self, data, file):
+        twitter = t.Twitter()
+
+        print(data)
+        if alpha["twitter_enabled"]:
+            twitter.tweet(data, [file])
+
+    def post_trade(self, df, pair, tf, type):
+        utc_datetime = datetime.now(timezone.utc)
+        data = ''
+        for h in pair['hash_tags']:
+            data = data + '#' + h + ' '
+            data = data + '\r\n'
+            data = data + type + '\r\n'
+
+            data = data + '\r\n'
+            data = data + '$' + str(df['close'].iloc[-1]) + '\r\n'
+            data = data + str(utc_datetime.strftime("%Y-%m-%d %H:%M:%S")) + '\r\n'
+            data = data + 'Timeframe: ' + tf['label'] + '\r\n\r\n'
+
+            self.tweet(data)
+            

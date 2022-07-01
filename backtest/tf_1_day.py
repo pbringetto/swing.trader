@@ -17,24 +17,21 @@ pd.set_option('display.width', 1000)
 kraken = k.Kraken()
 
 def test_buy_signal():
-    df = kraken.get_time_frame_data('XBTUSDT', 30)
+    df = kraken.get_time_frame_data('XBTUSDT', 1440)
     data, ohlc = ta_signals.go(df['ohlc'][::-1], 'close', 2)
     pattern_data, lows, highs = pyangles.go(ohlc, 'close', [2, 2], [34, 34])
 
-    #2
-    #ohlc.loc[ohlc.rsi_slope.gt(10) & ohlc.macd_slope.gt(10) & ohlc.MACDh_12_26_9.gt(-100) & ohlc.rsi.lt(60), 'signal'] = 'long'
-    #1
-    ohlc.loc[(ohlc.close < (ohlc.ema50 - (ohlc['std'] * 3.4))) & ohlc.macd_slope.gt(-10), 'signal'] = 'long'
-    ohlc['signal'].loc[ohlc.signal.eq('long') & ohlc.signal.shift(-1).eq('long')] = nan
-    ohlc.loc[ohlc.rsi.gt(75), 'signal'] = 'short'
-    ohlc['signal'].loc[ohlc.signal.eq('short') & ohlc.signal.shift(-1).eq('short')] = nan
+    print(ohlc.loc[ohlc.rsi.lt(33)][['std', 'close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','ema50']])
+
+    ohlc.loc[ohlc.close < (ohlc.ema20 - (ohlc['std'] * 3)), 'signal'] = 'long'
+    ohlc.loc[(ohlc.close > (ohlc.ema20 + (ohlc['std'] * 3))) & ohlc.macd_slope.gt(250), 'signal'] = 'short'
+
+
     ax = ohlc.plot(kind='line', use_index=True, y='close')
 
-
-
-    print(ohlc[['time','close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','signal','ema50']][-5::])
-    #print(lows[['close_lows_slope','close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','ema50']])
-    #print(highs[['time', 'close_highs_slope','close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','ema50']])
+    #print(ohlc[['time','close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','signal','ema50']][-5::])
+    print(lows[['close_lows_slope','close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','ema50']])
+    print(highs[['time', 'close_highs_slope','close','rsi','rsi_slope','macd_slope','MACDh_12_26_9','macd_hist_slope','ema50']])
 
     #print(patterns)
 
@@ -53,11 +50,17 @@ def test_buy_signal():
     if patterns:
         ax.annotate(patterns[0], xy=(ohlc.iloc[-x].name, ohlc['close'].min()), xytext=(ohlc.iloc[-x].name, ohlc['close'].min()))
 
+
+
     ohlc = ohlc.dropna(subset=['signal'])
     for index, row in ohlc.iterrows():
-        ax.annotate(row['signal'], xy=(index, row['close']), xytext=(index, row['close']),
+        #ax.annotate(str(row['signal'])  + ' ' + str(row['macd_slope']), xy=(index, row['close']), xytext=(index, row['close']),
+        ax.annotate(str(row['signal']), xy=(index, row['close']), xytext=(index, row['close']),
             arrowprops=dict(facecolor='black', shrink=0.05),
         )
+
+
+
 
     plt.show()
     plt.savefig('foo.png')

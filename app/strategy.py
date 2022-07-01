@@ -9,12 +9,8 @@ class Strategy:
 
         #print(ohlc[['time', 'close', 'volume', 'low', 'high']].to_dict('records'))
 
-
-        ta_data, ohlc = ta_signals.go(ohlc, 'close', 2, .03)
+        ta_data, ohlc = ta_signals.go(ohlc, 'close')
         pattern_data, lows, highs = pyangles.go(ohlc, 'close', [3, 3], [3, 3])
-
-
-
 
         #print(lows['close'][-5:])
         #print(highs['close'][-5:])
@@ -28,7 +24,7 @@ class Strategy:
             if signal['value']:
                 signals.append(signal['key'])
 
-        print(ohlc[['close','matp','bollinger_high','bollinger_low','rsi','rsi_slope','MACD_12_26_9','MACDs_12_26_9','MACDh_12_26_9','macd_slope','macd_sig_slope','macd_hist_slope']].iloc[-1])
+        print(ohlc[['close','rsi','rsi_slope','ema8','ema34','ema8_slope','ema34_slope', 'key_slope']].iloc[-3:])
         print('---------ta_data--------------------')
         print(signals)
         print('---------strategy_data--------------------')

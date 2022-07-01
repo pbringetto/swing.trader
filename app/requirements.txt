@@ -3,11 +3,10 @@ mysql-connector
 requests
 python-dotenv
 pandas
-#pandas_ta
 cfg_load
 krakenex
 pykrakenapi
 pytest
 scipy
-ta_signals~=0.0.4
+ta_signals~=0.0.58
 pyangles~=0.0.21
