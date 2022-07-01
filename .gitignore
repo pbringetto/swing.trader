@@ -2,7 +2,9 @@ alpha.yaml
 .env
 backup.sql
 kraken.key
-app/api/__pycache__/
-backtest/__pycache__/
-backtest/kraken.py
-app/__pycache__/
+api/__pycache__/
+__pycache__/
+models/__pycache__/
+api/__init__.py
+models/__init__.py
+
